@@ -10,8 +10,9 @@ The project is an APU final year project: a platform that scans SharePoint permi
 
 - **Milestone 1:** `backend/models.py` (SQLAlchemy, SQLite at `backend/fyp_governance.db`), `backend/seed.py` (deterministic seed 42, writes `backend/ground_truth.json`), `backend/schemas.py` (Graph v1.0 permission and flow models), `backend/adapter.py`, `backend/verify_milestone1.py`.
 - **Milestone 2:** `backend/scanner.py` (risk scoring, weights in `WEIGHTS`), `backend/flow_mapper.py` (flow dependencies and `BREAKAGE_CRITICAL` / `SAFE_TO_REVOKE` / `KEEP_REQUIRED`), `backend/main.py` (FastAPI), `backend/evaluate_benchmark.py` (writes `backend/benchmark_results.json`), `backend/tests/`.
+- **Milestone 3:** `frontend/` (React 18 + Vite 6 + TypeScript + Tailwind 3, npm): KPI bar and scan trigger, IT Security Admin / Business Manager views, dry-run guardrail modal, "Evaluation & Proof" benchmark tab. Backend additions: CORS for `http://localhost:5173` (`FYP_CORS_ORIGINS` overrides), `GET /api/benchmark` (serves `benchmark_results.json`), `inherited_from` on `AssessmentOut`, `backend/tests/test_milestone3.py`. Manager review decisions are browser-only (localStorage per `scan_id`); nothing writes to the tenant.
 
-No frontend, Makefile, Alembic or simulator HTTP service exists yet.
+No Makefile, Alembic or simulator HTTP service exists yet.
 
 ## Commands
 
@@ -22,6 +23,8 @@ On this Windows machine always use `py`, never `python`. Run everything from the
 - Benchmark: `py backend/evaluate_benchmark.py`
 - Reseed the database: `py backend/seed.py`
 - Milestone 1 checks: `py backend/verify_milestone1.py` (this reseeds `fyp_governance.db`)
+- Frontend (run inside `frontend/`, uses `npm`): `npm install`, `npm run dev` (port 5173, API at `VITE_API_BASE`, default `http://127.0.0.1:8000`), `npm run build` (`tsc --noEmit && vite build`). Deep links: `#benchmark`, `?role=manager`, `?preview=<assessment id>`.
+- Running a scan writes `assessments` rows into whichever database the API uses. To demo without touching the committed `fyp_governance.db`, copy it and set `FYP_DB_PATH`.
 
 ## Import structure
 

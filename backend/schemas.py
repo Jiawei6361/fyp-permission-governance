@@ -138,6 +138,7 @@ class AssessmentOut(BaseModel):
     principal_display: str
     roles: list[str]
     link_scope: str | None
+    inherited_from: str | None = None  # Graph inheritedFrom.path; None for direct grants
     exposure: str | None
     risk_score: int
     risk_band: str

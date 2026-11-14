@@ -1,4 +1,5 @@
-"""Milestone 2 FastAPI app: scan, assessment listing and non-destructive dry-run preview.
+"""FastAPI app (Milestones 2-3): scan, assessment listing, non-destructive dry-run preview,
+benchmark results, and CORS for the Vite dashboard.
 
 Run from the project root:  py -m uvicorn backend.main:app --reload
 
@@ -7,6 +8,7 @@ request that a later milestone would send.
 """
 from __future__ import annotations
 
+import json
 import os
 from collections import Counter
 from collections.abc import Iterator
@@ -15,11 +17,12 @@ from pathlib import Path
 from uuid import uuid4
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Request
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, sessionmaker
 
 from backend.flow_mapper import BREAKAGE_CRITICAL, KEEP_REQUIRED, SAFE_TO_REVOKE, classify
-from backend.models import DB_PATH, Assessment, File, User, init_db, make_engine
+from backend.models import DB_PATH, Assessment, File, Permission, User, init_db, make_engine
 from backend.scanner import (EVERYONE, OVERSHARE_THRESHOLD, SENSITIVE_LABELS, STALE_DAYS, WEIGHTS,
                      load_snapshot, risk_band, scan_permissions)
 from backend.schemas import (AssessmentList, AssessmentOut, Classification, DryRunPreview, GraphRequestPreview,
@@ -27,6 +30,9 @@ from backend.schemas import (AssessmentList, AssessmentOut, Classification, DryR
 from backend.seed import NOW as REFERENCE_TIME
 
 GRAPH_BASE = "https://graph.microsoft.com/v1.0"
+BENCHMARK_PATH = Path(__file__).resolve().parent / "benchmark_results.json"
+# Vite dev server (Milestone 3 dashboard). FYP_CORS_ORIGINS (comma-separated) overrides.
+DEFAULT_CORS_ORIGINS = ("http://localhost:5173", "http://127.0.0.1:5173")
 
 
 # ---------------------------------------------------------------- app / session wiring
@@ -36,6 +42,11 @@ def create_app(db_path: Path | str | None = None) -> FastAPI:
     init_db(engine)  # adds `assessments` if missing; seeded tables are left as they are
     app = FastAPI(title="Lumira Oversharing Governance API", version="0.2.0")
     app.state.sessionmaker = sessionmaker(engine, expire_on_commit=False)
+    origins = os.environ.get("FYP_CORS_ORIGINS")
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=[o.strip() for o in origins.split(",")] if origins else list(DEFAULT_CORS_ORIGINS),
+        allow_methods=["GET", "POST"], allow_headers=["*"])
     _register_routes(app)
     return app
 
@@ -99,13 +110,13 @@ def _principal_display(a: Assessment, users: dict[str, User]) -> str:
     return f"{a.principal_id.removeprefix('g-').title()} Team"
 
 
-def _to_out(a: Assessment, f: File, users: dict[str, User]) -> AssessmentOut:
+def _to_out(a: Assessment, f: File, users: dict[str, User], inherited_from: str | None = None) -> AssessmentOut:
     return AssessmentOut(
         id=a.id, scan_id=a.scan_id, permission_id=a.permission_id, file_id=a.file_id, file_name=f.file_name,
         file_path=f.file_path, site_name=f.site_name, sensitivity_label=f.sensitivity_label,
         is_copilot_indexed=f.is_copilot_indexed, drive_id=a.drive_id, principal_id=a.principal_id,
         principal_type=a.principal_type, principal_display=_principal_display(a, users), roles=a.roles_json,
-        link_scope=a.link_scope, exposure=a.exposure, risk_score=a.risk_score, risk_band=risk_band(a.risk_score),
+        link_scope=a.link_scope, inherited_from=inherited_from, exposure=a.exposure, risk_score=a.risk_score, risk_band=risk_band(a.risk_score),
         score_breakdown=a.score_breakdown, reasons=a.reasons, is_overshared=a.is_overshared, is_stale=a.is_stale,
         days_since_access=a.days_since_access, classification=a.classification,
         dependent_flows=a.dependent_flows, mitigation=a.mitigation)
@@ -164,6 +175,13 @@ def _register_routes(app: FastAPI) -> None:
         return {"weights": WEIGHTS, "overshare_threshold": OVERSHARE_THRESHOLD, "stale_days": STALE_DAYS,
                 "sensitive_labels": sorted(SENSITIVE_LABELS), "reference_time": REFERENCE_TIME}
 
+    @app.get("/api/benchmark")
+    def benchmark() -> dict:
+        """Serves the output of evaluate_benchmark.py (baseline vs proposed engine)."""
+        if not BENCHMARK_PATH.exists():
+            raise HTTPException(404, "benchmark_results.json not found; run py backend/evaluate_benchmark.py")
+        return json.loads(BENCHMARK_PATH.read_text(encoding="utf-8"))
+
     @app.post("/api/scan/run", response_model=ScanSummary)
     def scan_run(session: Session = Depends(get_db)) -> ScanSummary:
         return run_scan(session)
@@ -178,20 +196,25 @@ def _register_routes(app: FastAPI) -> None:
         scan_id = scan_id or _latest_scan_id(session)
         if scan_id is None:
             raise HTTPException(404, "no scan has been run yet; POST /api/scan/run first")
-        stmt = select(Assessment, File).join(File, File.id == Assessment.file_id).where(Assessment.scan_id == scan_id)
+        stmt = (select(Assessment, File, Permission.inherited_from)
+                .join(File, File.id == Assessment.file_id)
+                .outerjoin(Permission, Permission.id == Assessment.permission_id)
+                .where(Assessment.scan_id == scan_id))
         if classification:
             stmt = stmt.where(Assessment.classification == classification)
         rows = session.execute(stmt.order_by(Assessment.risk_score.desc(), Assessment.id)).all()
         if not rows and session.scalar(select(func.count()).where(Assessment.scan_id == scan_id)) == 0:
             raise HTTPException(404, f"scan {scan_id} not found")
         users = {u.id: u for u in session.scalars(select(User))}
-        render = _manager_card if role == "manager" else _to_out
-        return AssessmentList(scan_id=scan_id, role=role, total=len(rows), items=[render(a, f, users) for a, f in rows])
+        items = ([_manager_card(a, f, users) for a, f, _ in rows] if role == "manager"
+                 else [_to_out(a, f, users, inh) for a, f, inh in rows])
+        return AssessmentList(scan_id=scan_id, role=role, total=len(rows), items=items)
 
     @app.get("/api/assessments/{assessment_id}", response_model=AssessmentOut)
     def get_assessment(assessment_id: int, session: Session = Depends(get_db)) -> AssessmentOut:
         a, f = _get_assessment(session, assessment_id)
-        return _to_out(a, f, {u.id: u for u in session.scalars(select(User))})
+        p = session.get(Permission, a.permission_id)
+        return _to_out(a, f, {u.id: u for u in session.scalars(select(User))}, p.inherited_from if p else None)
 
     @app.post("/api/assessments/{assessment_id}/dry-run", response_model=DryRunPreview)
     def dry_run(assessment_id: int, session: Session = Depends(get_db)) -> DryRunPreview:

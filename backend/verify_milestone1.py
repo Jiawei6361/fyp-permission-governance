@@ -9,10 +9,15 @@ from pydantic import ValidationError
 from sqlalchemy import inspect, select, text
 from sqlalchemy.orm import Session
 
-import seed
-from adapter import SimulatorAdapter, get_adapter
-from models import DB_PATH, Base, File, Flow, Permission, User, make_engine
-from schemas import FlowResource, Permission as GraphPermission
+if __package__ in (None, ""):  # run as a file path: make `backend` importable
+    from pathlib import Path
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from backend import seed
+from backend.adapter import SimulatorAdapter, get_adapter
+from backend.models import DB_PATH, Base, File, Flow, Permission, User, make_engine
+from backend.schemas import FlowResource, Permission as GraphPermission
 
 results: list[tuple[str, bool, str]] = []
 

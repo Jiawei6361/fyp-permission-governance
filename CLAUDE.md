@@ -4,13 +4,32 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Current state
 
-The repo contains only two spec documents, `ARCHITECTURE.md` (v1.0, the contract the code must satisfy) and `ROADMAP.md` (six milestones, each with exact verification commands and expected values). No application code, Makefile or package manifests exist yet, so there are no working build or test commands to run today. Read the relevant section of both files before building anything; cite sections as "A 7.3" the way the roadmap does. Both files are long, so Grep for headings rather than reading them whole.
-
 The project is an APU final year project: a platform that scans SharePoint permissions, maps Power Automate flow dependencies, scores oversharing risk, explains findings through an LLM, and remediates with rollback. It runs against a simulated tenant (the fictional "Lumira Trading").
+
+`ARCHITECTURE.md` and `ROADMAP.md` are the long-term spec (cite sections as "A 7.3"; Grep for headings rather than reading them whole). The code built so far is a simpler flat layout than those documents describe:
+
+- **Milestone 1:** `backend/models.py` (SQLAlchemy, SQLite at `backend/fyp_governance.db`), `backend/seed.py` (deterministic seed 42, writes `backend/ground_truth.json`), `backend/schemas.py` (Graph v1.0 permission and flow models), `backend/adapter.py`, `backend/verify_milestone1.py`.
+- **Milestone 2:** `backend/scanner.py` (risk scoring, weights in `WEIGHTS`), `backend/flow_mapper.py` (flow dependencies and `BREAKAGE_CRITICAL` / `SAFE_TO_REVOKE` / `KEEP_REQUIRED`), `backend/main.py` (FastAPI), `backend/evaluate_benchmark.py` (writes `backend/benchmark_results.json`), `backend/tests/`.
+
+No frontend, Makefile, Alembic or simulator HTTP service exists yet.
+
+## Commands
+
+On this Windows machine always use `py`, never `python`. Run everything from the project root.
+
+- API: `py -m uvicorn backend.main:app --reload` (port 8000; `FYP_DB_PATH` overrides the database file)
+- Tests: `py -m pytest` (`pytest.ini` sets `testpaths = backend/tests`, `pythonpath = .`)
+- Benchmark: `py backend/evaluate_benchmark.py`
+- Reseed the database: `py backend/seed.py`
+- Milestone 1 checks: `py backend/verify_milestone1.py` (this reseeds `fyp_governance.db`)
+
+## Import structure
+
+`backend` is a package (`backend/__init__.py`). All internal imports are absolute, for example `from backend.models import File`. Never use flat imports such as `from models import ...`; they break `backend.main:app`. Scripts that are run by file path (`seed.py`, `evaluate_benchmark.py`, `verify_milestone1.py`) insert the project root into `sys.path` when `__package__` is empty, before their `backend.*` imports. Any new runnable script needs the same guard.
 
 ## Planned commands (from ROADMAP.md, not yet implemented)
 
-`make setup | seed | sim | api | web | dev | db-reset | sim-reset | test | verify-mN`. Processes: simulator :8001, FastAPI backend :8000, Vite frontend :5173. `make verify-mN` runs `verify-m1..m(N-1)` first, and a milestone is done only when it exits 0 from a clean checkout. Stack: Python 3.12, FastAPI, SQLAlchemy 2, Alembic, uv, pytest on the backend; React, TypeScript, Vite, pnpm, Vitest, Playwright on the frontend.
+`make setup | seed | sim | api | web | dev | db-reset | sim-reset | test | verify-mN`. Processes: simulator :8001, FastAPI backend :8000, Vite frontend :5173. Stack: Python 3.12, FastAPI, SQLAlchemy 2, Alembic, uv, pytest on the backend; React, TypeScript, Vite, pnpm, Vitest, Playwright on the frontend.
 
 ## Architecture rules that span many files
 

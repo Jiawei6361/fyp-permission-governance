@@ -29,7 +29,7 @@ class TenantAdapter(ABC):
 
 class SimulatorAdapter(TenantAdapter):
     def __init__(self, dataset: dict | None = None):
-        from seed import build_dataset  # local import: seed imports models, not adapter
+        from backend.seed import build_dataset  # local import: seed imports models, not adapter
 
         ds = dataset or build_dataset()
         self._users = ds["users"]

@@ -4,7 +4,7 @@ from __future__ import annotations
 from datetime import datetime
 from pathlib import Path
 
-from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Index, String, create_engine, event
+from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Index, Integer, String, create_engine, event
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
@@ -78,6 +78,35 @@ class Flow(Base):
     raw_definition_json: Mapped[dict] = mapped_column(JSON, nullable=False)
 
 
+class Assessment(Base):
+    """Milestone 2: one scored, flow-correlated permission within an immutable scan snapshot."""
+
+    __tablename__ = "assessments"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    scan_id: Mapped[str] = mapped_column(String, nullable=False, index=True)
+    scanned_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    reference_time: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    permission_id: Mapped[str] = mapped_column(String, nullable=False)
+    file_id: Mapped[str] = mapped_column(String, nullable=False)
+    drive_id: Mapped[str] = mapped_column(String, nullable=False)
+    principal_id: Mapped[str] = mapped_column(String, nullable=False)
+    principal_type: Mapped[str] = mapped_column(String, nullable=False)
+    roles_json: Mapped[list] = mapped_column(JSON, nullable=False)
+    link_scope: Mapped[str | None] = mapped_column(String)
+    exposure: Mapped[str | None] = mapped_column(String)
+    risk_score: Mapped[int] = mapped_column(Integer, nullable=False)
+    score_breakdown: Mapped[dict] = mapped_column(JSON, nullable=False)
+    reasons: Mapped[list] = mapped_column(JSON, nullable=False)
+    is_overshared: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    is_stale: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    days_since_access: Mapped[int | None] = mapped_column(Integer)
+    # BREAKAGE_CRITICAL | SAFE_TO_REVOKE | KEEP_REQUIRED
+    classification: Mapped[str] = mapped_column(String, nullable=False, index=True)
+    dependent_flows: Mapped[list] = mapped_column(JSON, nullable=False)
+    mitigation: Mapped[str | None] = mapped_column(String)
+
+
 @event.listens_for(Engine, "connect")
 def _enable_sqlite_fk(dbapi_connection, _record):  # pragma: no cover - trivial
     cur = dbapi_connection.cursor()
@@ -86,4 +115,9 @@ def _enable_sqlite_fk(dbapi_connection, _record):  # pragma: no cover - trivial
 
 
 def make_engine(path: Path | str = DB_PATH) -> Engine:
-    return create_engine(f"sqlite:///{path}")
+    return create_engine(f"sqlite:///{path}", connect_args={"check_same_thread": False})
+
+
+def init_db(engine: Engine) -> None:
+    """Create any missing tables (e.g. `assessments`) without touching existing seeded data."""
+    Base.metadata.create_all(engine, checkfirst=True)

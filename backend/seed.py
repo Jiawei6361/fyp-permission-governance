@@ -19,12 +19,16 @@ import base64
 import itertools
 import json
 import random
+import sys
 from datetime import datetime, timedelta
 from pathlib import Path
 
 from sqlalchemy.orm import Session
 
-from models import DB_PATH, Base, File, Flow, Permission, User, make_engine
+if __package__ in (None, ""):  # run as `py backend/seed.py`: make `backend` importable
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from backend.models import DB_PATH, Base, File, Flow, Permission, User, make_engine
 
 SEED = 42
 NOW = datetime(2026, 11, 15, 9, 0, 0)  # fixed reference time keeps the dataset deterministic

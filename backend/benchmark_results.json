@@ -1,0 +1,91 @@
+{
+  "reference_time": "2026-11-15T09:00:00",
+  "seed": 42,
+  "ground_truth": {
+    "safe_to_revoke_positives": 23,
+    "overshared_positives": 12,
+    "workflow_breaking_positives": 12,
+    "permissions_total": 337,
+    "flows_total": 25
+  },
+  "engines": {
+    "baseline": {
+      "name": "Baseline (permission-only, Purview-style)",
+      "revocation_recommendation": {
+        "tp": 23,
+        "fp": 7,
+        "fn": 0,
+        "precision": 0.7667,
+        "recall": 1.0,
+        "f1": 0.8679
+      },
+      "oversharing_detection": {
+        "tp": 12,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "flow_dependency_detection": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 12,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0
+      },
+      "recommended_revocations": 30,
+      "flows_broken_if_executed": [
+        "flow-01",
+        "flow-02",
+        "flow-03",
+        "flow-04",
+        "flow-05",
+        "flow-06",
+        "flow-07"
+      ],
+      "critical_flows_broken_if_executed": [
+        "flow-01",
+        "flow-02",
+        "flow-03",
+        "flow-05",
+        "flow-06",
+        "flow-07"
+      ],
+      "benign_grants_flagged": []
+    },
+    "proposed": {
+      "name": "Proposed context-aware engine (ours)",
+      "revocation_recommendation": {
+        "tp": 23,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "oversharing_detection": {
+        "tp": 12,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "flow_dependency_detection": {
+        "tp": 12,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "recommended_revocations": 23,
+      "flows_broken_if_executed": [],
+      "critical_flows_broken_if_executed": [],
+      "benign_grants_flagged": []
+    }
+  },
+  "workflow_breakage_prevention_rate_pct": 100.0
+}

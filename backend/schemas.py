@@ -2,6 +2,7 @@
 (plus the Power Automate flow properties we rely on)."""
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, model_validator
@@ -87,3 +88,108 @@ class FlowResource(BaseModel):
     id: str
     type: Literal["Microsoft.ProcessSimple/environments/flows"]
     properties: FlowProperties
+
+
+# ================================================================ Milestone 2 API schemas
+Classification = Literal["BREAKAGE_CRITICAL", "SAFE_TO_REVOKE", "KEEP_REQUIRED"]
+ViewRole = Literal["admin", "manager"]
+
+
+class FlowDependencyOut(BaseModel):
+    flow_id: str
+    flow_name: str
+    action_name: str
+    operation_id: str
+    required_role: str
+    connection_identity: str
+    connection_name: str | None
+    is_critical_flow: bool
+    mitigation: str
+
+
+class ScanSummary(BaseModel):
+    scan_id: str
+    reference_time: datetime
+    files_scanned: int
+    permissions_scanned: int
+    flows_analysed: int
+    active_delegated_flows: int
+    overshared_permissions: int
+    overshared_files: int
+    stale_permissions: int
+    flagged_for_revocation: int
+    by_classification: dict[str, int]
+    flows_at_risk: list[str]
+
+
+class AssessmentOut(BaseModel):
+    id: int
+    scan_id: str
+    permission_id: str
+    file_id: str
+    file_name: str
+    file_path: str
+    site_name: str
+    sensitivity_label: str
+    is_copilot_indexed: bool
+    drive_id: str
+    principal_id: str
+    principal_type: str
+    principal_display: str
+    roles: list[str]
+    link_scope: str | None
+    exposure: str | None
+    risk_score: int
+    risk_band: str
+    score_breakdown: dict[str, int]
+    reasons: list[str]
+    is_overshared: bool
+    is_stale: bool
+    days_since_access: int | None
+    classification: Classification
+    dependent_flows: list[FlowDependencyOut]
+    mitigation: str | None
+
+
+class ManagerCard(BaseModel):
+    """Plain-language explanation for a business owner. No raw permission ids."""
+    id: int
+    classification: Classification
+    risk_level: str
+    risk_score: int
+    file_name: str
+    site_name: str
+    headline: str
+    what_we_found: str
+    why_it_matters: str
+    recommended_action: str
+    safe_to_fix_now: bool
+
+
+class AssessmentList(BaseModel):
+    scan_id: str
+    role: ViewRole
+    total: int
+    items: list[AssessmentOut] | list[ManagerCard]
+
+
+class GraphRequestPreview(BaseModel):
+    method: Literal["DELETE"]
+    url: str
+    path: str
+    headers: dict[str, str]
+    expected_status: int
+
+
+class DryRunPreview(BaseModel):
+    assessment_id: int
+    scan_id: str
+    classification: Classification
+    dry_run: Literal[True] = True
+    executed: Literal[False] = False
+    blocked: bool
+    request: GraphRequestPreview
+    target: dict[str, str | None]
+    warning: str | None
+    breakage: list[FlowDependencyOut]
+    preconditions: list[str]

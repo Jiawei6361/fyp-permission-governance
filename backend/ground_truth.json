@@ -1,0 +1,374 @@
+{
+  "overshared_files": [
+    {
+      "file_id": "f-056",
+      "permission_id": "Zi0wNTZ8MzAx",
+      "exposure_kind": "org_link",
+      "sensitivity_label": "Highly Confidential",
+      "is_copilot_indexed": true,
+      "dependent_flow_ids": [
+        "flow-01"
+      ],
+      "expected_action": "migrate_flow_then_remove"
+    },
+    {
+      "file_id": "f-001",
+      "permission_id": "Zi0wMDF8MzAy",
+      "exposure_kind": "everyone",
+      "sensitivity_label": "Confidential",
+      "is_copilot_indexed": true,
+      "dependent_flow_ids": [
+        "flow-02"
+      ],
+      "expected_action": "migrate_flow_then_remove"
+    },
+    {
+      "file_id": "f-008",
+      "permission_id": "Zi0wMDh8MzAz",
+      "exposure_kind": "everyone",
+      "sensitivity_label": "Confidential",
+      "is_copilot_indexed": true,
+      "dependent_flow_ids": [
+        "flow-03"
+      ],
+      "expected_action": "migrate_flow_then_remove"
+    },
+    {
+      "file_id": "f-020",
+      "permission_id": "Zi0wMjB8MzA0",
+      "exposure_kind": "org_link",
+      "sensitivity_label": "Highly Confidential",
+      "is_copilot_indexed": true,
+      "dependent_flow_ids": [
+        "flow-04"
+      ],
+      "expected_action": "migrate_flow_then_remove"
+    },
+    {
+      "file_id": "f-014",
+      "permission_id": "Zi0wMTR8MzA1",
+      "exposure_kind": "anonymous",
+      "sensitivity_label": "Highly Confidential",
+      "is_copilot_indexed": true,
+      "dependent_flow_ids": [],
+      "expected_action": "remove"
+    },
+    {
+      "file_id": "f-047",
+      "permission_id": "Zi0wNDd8MzA2",
+      "exposure_kind": "anonymous",
+      "sensitivity_label": "Confidential",
+      "is_copilot_indexed": true,
+      "dependent_flow_ids": [],
+      "expected_action": "remove"
+    },
+    {
+      "file_id": "f-052",
+      "permission_id": "Zi0wNTJ8MzA3",
+      "exposure_kind": "anonymous",
+      "sensitivity_label": "Highly Confidential",
+      "is_copilot_indexed": true,
+      "dependent_flow_ids": [],
+      "expected_action": "remove"
+    },
+    {
+      "file_id": "f-051",
+      "permission_id": "Zi0wNTF8MzA4",
+      "exposure_kind": "org_link",
+      "sensitivity_label": "Highly Confidential",
+      "is_copilot_indexed": true,
+      "dependent_flow_ids": [],
+      "expected_action": "remove"
+    },
+    {
+      "file_id": "f-018",
+      "permission_id": "Zi0wMTh8MzA5",
+      "exposure_kind": "org_link",
+      "sensitivity_label": "Highly Confidential",
+      "is_copilot_indexed": true,
+      "dependent_flow_ids": [],
+      "expected_action": "remove"
+    },
+    {
+      "file_id": "f-046",
+      "permission_id": "Zi0wNDZ8MzEw",
+      "exposure_kind": "everyone",
+      "sensitivity_label": "Confidential",
+      "is_copilot_indexed": true,
+      "dependent_flow_ids": [],
+      "expected_action": "remove"
+    },
+    {
+      "file_id": "f-006",
+      "permission_id": "Zi0wMDZ8MzEx",
+      "exposure_kind": "large_group",
+      "sensitivity_label": "Confidential",
+      "is_copilot_indexed": true,
+      "dependent_flow_ids": [],
+      "expected_action": "remove"
+    },
+    {
+      "file_id": "f-073",
+      "permission_id": "Zi0wNzN8MzEy",
+      "exposure_kind": "large_group",
+      "sensitivity_label": "Confidential",
+      "is_copilot_indexed": true,
+      "dependent_flow_ids": [],
+      "expected_action": "remove"
+    }
+  ],
+  "stale_safe_to_revoke": [
+    {
+      "permission_id": "Zi0wMjZ8MzIz",
+      "file_id": "f-026",
+      "principal_id": "u-024",
+      "days_since_access": 314
+    },
+    {
+      "permission_id": "Zi0wMzF8MzI0",
+      "file_id": "f-031",
+      "principal_id": "u-032",
+      "days_since_access": 274
+    },
+    {
+      "permission_id": "Zi0wNDh8MzI1",
+      "file_id": "f-048",
+      "principal_id": "u-025",
+      "days_since_access": 259
+    },
+    {
+      "permission_id": "Zi0wMzR8MzI2",
+      "file_id": "f-034",
+      "principal_id": "u-030",
+      "days_since_access": 390
+    },
+    {
+      "permission_id": "Zi0wMTF8MzI3",
+      "file_id": "f-011",
+      "principal_id": "u-006",
+      "days_since_access": 126
+    },
+    {
+      "permission_id": "Zi0wODl8MzI4",
+      "file_id": "f-089",
+      "principal_id": "u-011",
+      "days_since_access": 125
+    },
+    {
+      "permission_id": "Zi0wOTR8MzI5",
+      "file_id": "f-094",
+      "principal_id": "u-006",
+      "days_since_access": 239
+    },
+    {
+      "permission_id": "Zi0wNTN8MzMw",
+      "file_id": "f-053",
+      "principal_id": "u-029",
+      "days_since_access": 348
+    },
+    {
+      "permission_id": "Zi0wOTJ8MzMx",
+      "file_id": "f-092",
+      "principal_id": "u-030",
+      "days_since_access": 312
+    },
+    {
+      "permission_id": "Zi0wMTB8MzMy",
+      "file_id": "f-010",
+      "principal_id": "u-021",
+      "days_since_access": 362
+    },
+    {
+      "permission_id": "Zi0wODB8MzMz",
+      "file_id": "f-080",
+      "principal_id": "u-023",
+      "days_since_access": 320
+    },
+    {
+      "permission_id": "Zi0wODN8MzM0",
+      "file_id": "f-083",
+      "principal_id": "u-019",
+      "days_since_access": 349
+    },
+    {
+      "permission_id": "Zi0wMjd8MzM1",
+      "file_id": "f-027",
+      "principal_id": "u-026",
+      "days_since_access": 123
+    },
+    {
+      "permission_id": "Zi0wOTN8MzM2",
+      "file_id": "f-093",
+      "principal_id": "u-027",
+      "days_since_access": 128
+    },
+    {
+      "permission_id": "Zi0wMTV8MzM3",
+      "file_id": "f-015",
+      "principal_id": "u-019",
+      "days_since_access": 254
+    }
+  ],
+  "workflow_breaking_permissions": [
+    {
+      "permission_id": "Zi0wNTZ8MzAx",
+      "file_id": "f-056",
+      "principal_id": "Zi0wNTZ8MzAx",
+      "flow_ids": [
+        "flow-01"
+      ],
+      "kind": "sole_broad_grant",
+      "stale_by_access_log": false
+    },
+    {
+      "permission_id": "Zi0wMDF8MzAy",
+      "file_id": "f-001",
+      "principal_id": "everyone_except_external",
+      "flow_ids": [
+        "flow-02"
+      ],
+      "kind": "sole_broad_grant",
+      "stale_by_access_log": false
+    },
+    {
+      "permission_id": "Zi0wMDh8MzAz",
+      "file_id": "f-008",
+      "principal_id": "everyone_except_external",
+      "flow_ids": [
+        "flow-03"
+      ],
+      "kind": "sole_broad_grant",
+      "stale_by_access_log": false
+    },
+    {
+      "permission_id": "Zi0wMjB8MzA0",
+      "file_id": "f-020",
+      "principal_id": "Zi0wMjB8MzA0",
+      "flow_ids": [
+        "flow-04"
+      ],
+      "kind": "sole_broad_grant",
+      "stale_by_access_log": false
+    },
+    {
+      "permission_id": "Zi0wNjF8MzE1",
+      "file_id": "f-061",
+      "principal_id": "u-021",
+      "flow_ids": [
+        "flow-05"
+      ],
+      "kind": "sole_direct_grant",
+      "stale_by_access_log": true
+    },
+    {
+      "permission_id": "Zi0wNDB8MzE2",
+      "file_id": "f-040",
+      "principal_id": "u-027",
+      "flow_ids": [
+        "flow-06"
+      ],
+      "kind": "sole_direct_grant",
+      "stale_by_access_log": true
+    },
+    {
+      "permission_id": "Zi0wNzB8MzE3",
+      "file_id": "f-070",
+      "principal_id": "u-026",
+      "flow_ids": [
+        "flow-07"
+      ],
+      "kind": "sole_direct_grant",
+      "stale_by_access_log": true
+    },
+    {
+      "permission_id": "Zi0wNDN8MzE4",
+      "file_id": "f-043",
+      "principal_id": "u-012",
+      "flow_ids": [
+        "flow-08"
+      ],
+      "kind": "sole_direct_grant",
+      "stale_by_access_log": false
+    },
+    {
+      "permission_id": "Zi0wNjZ8MzE5",
+      "file_id": "f-066",
+      "principal_id": "u-042",
+      "flow_ids": [
+        "flow-09"
+      ],
+      "kind": "sole_direct_grant",
+      "stale_by_access_log": false
+    },
+    {
+      "permission_id": "Zi0wODR8MzIw",
+      "file_id": "f-084",
+      "principal_id": "u-005",
+      "flow_ids": [
+        "flow-10"
+      ],
+      "kind": "sole_direct_grant",
+      "stale_by_access_log": false
+    },
+    {
+      "permission_id": "Zi0wOTl8MzIx",
+      "file_id": "f-099",
+      "principal_id": "u-002",
+      "flow_ids": [
+        "flow-11"
+      ],
+      "kind": "sole_direct_grant",
+      "stale_by_access_log": false
+    },
+    {
+      "permission_id": "Zi0wNzV8MzIy",
+      "file_id": "f-075",
+      "principal_id": "u-042",
+      "flow_ids": [
+        "flow-12"
+      ],
+      "kind": "sole_direct_grant",
+      "stale_by_access_log": false
+    }
+  ],
+  "benign_broad_grants": [
+    {
+      "file_id": "f-097",
+      "permission_id": "Zi0wOTd8MzEz",
+      "reason": "public content"
+    },
+    {
+      "file_id": "f-091",
+      "permission_id": "Zi0wOTF8MzE0",
+      "reason": "public content"
+    }
+  ],
+  "safe_flows": [
+    "flow-13",
+    "flow-14",
+    "flow-15",
+    "flow-16",
+    "flow-17",
+    "flow-18",
+    "flow-19",
+    "flow-20",
+    "flow-21",
+    "flow-22",
+    "flow-23",
+    "flow-24",
+    "flow-25"
+  ],
+  "counts": {
+    "users": 50,
+    "files": 100,
+    "flows": 25,
+    "permissions": 337,
+    "overshared_files": 12,
+    "stale_safe_to_revoke_permissions": 15,
+    "workflow_breaking_permissions": 12,
+    "workflow_breaking_flows": 12,
+    "benign_broad_grants": 2
+  },
+  "seed": 42,
+  "reference_time": "2026-11-15T09:00:00"
+}

@@ -1,0 +1,170 @@
+"""Milestone 1 verification. Exits 0 only if every check passes."""
+from __future__ import annotations
+
+import json
+import sys
+from datetime import timedelta
+
+from pydantic import ValidationError
+from sqlalchemy import inspect, select, text
+from sqlalchemy.orm import Session
+
+import seed
+from adapter import SimulatorAdapter, get_adapter
+from models import DB_PATH, Base, File, Flow, Permission, User, make_engine
+from schemas import FlowResource, Permission as GraphPermission
+
+results: list[tuple[str, bool, str]] = []
+
+
+def check(name: str, ok: bool, detail: str = "") -> bool:
+    results.append((name, bool(ok), detail))
+    return bool(ok)
+
+
+def main() -> int:
+    # ---- 1. clean initialisation
+    try:
+        seed.seed_database()
+        engine = make_engine(DB_PATH)
+        insp = inspect(engine)
+        expected = {t.name: {c.name for c in t.columns} for t in Base.metadata.sorted_tables}
+        actual = {t: {c["name"] for c in insp.get_columns(t)} for t in insp.get_table_names()}
+        with engine.connect() as c:
+            integrity = c.execute(text("PRAGMA integrity_check")).scalar()
+            fk_viol = c.execute(text("PRAGMA foreign_key_check")).fetchall()
+        check("1a schema created, tables/columns match models", actual == expected, f"{sorted(actual)}")
+        check("1b PRAGMA integrity_check ok, foreign_key_check empty", integrity == "ok" and not fk_viol,
+              f"integrity={integrity}, fk_violations={len(fk_viol)}")
+    except Exception as exc:  # noqa: BLE001
+        check("1 database initialisation", False, repr(exc))
+        return report()
+
+    truth = json.loads(seed.GROUND_TRUTH_PATH.read_text(encoding="utf-8"))
+    with Session(engine) as s:
+        users = {u.id: u for u in s.scalars(select(User))}
+        files = {f.id: f for f in s.scalars(select(File))}
+        perms = list(s.scalars(select(Permission)))
+        flows = list(s.scalars(select(Flow)))
+
+    # ---- 2. counts and foreign keys
+    check("2a 50 users / 100 files / 25 flows", (len(users), len(files), len(flows)) == (50, 100, 25),
+          f"{len(users)}/{len(files)}/{len(flows)}")
+    check("2b flows reference existing users and files",
+          all(f.owner_user_id in users and f.target_file_id in files for f in flows))
+    check("2c permissions reference existing files; user principals exist",
+          all(p.file_id in files for p in perms)
+          and all(p.principal_id in users for p in perms if p.principal_type == "user"),
+          f"{len(perms)} permissions")
+
+    # ---- 3. ground_truth.json labelled counts and independent recomputation from the DB
+    c = truth["counts"]
+    check("3a ground_truth counts consistent with lists",
+          c["overshared_files"] == len(truth["overshared_files"]) == 12
+          and c["workflow_breaking_permissions"] == len(truth["workflow_breaking_permissions"]) == 12
+          and c["workflow_breaking_flows"] == 12
+          and c["stale_safe_to_revoke_permissions"] == len(truth["stale_safe_to_revoke"]) == 15
+          and c["benign_broad_grants"] == 2,
+          f"overshared={c['overshared_files']} stale_safe={c['stale_safe_to_revoke_permissions']} "
+          f"breaking_perms={c['workflow_breaking_permissions']} breaking_flows={c['workflow_breaking_flows']}")
+
+    now = seed.NOW
+    perms_by_file: dict[str, list[Permission]] = {}
+    for p in perms:
+        perms_by_file.setdefault(p.file_id, []).append(p)
+
+    def is_broad(p: Permission) -> bool:
+        return (p.principal_type == seed.EVERYONE or p.principal_id == seed.ALL_STAFF
+                or p.link_scope in ("organization", "anonymous"))
+
+    over = {p.id for f in files.values() if f.sensitivity_label in seed.CONF and f.is_copilot_indexed
+            for p in perms_by_file[f.id] if is_broad(p)}
+    check("3b overshared set recomputed from DB == ground truth",
+          over == {o["permission_id"] for o in truth["overshared_files"]}, f"{len(over)} recomputed")
+
+    flow_deps = {(f.target_file_id, f.owner_user_id) for f in flows}
+    stale = {p.id for p in perms if p.principal_type == "user" and p.inherited_from is None
+             and now - p.last_accessed_at > timedelta(days=90) and (p.file_id, p.principal_id) not in flow_deps}
+    check("3c stale-safe set recomputed from DB == ground truth",
+          stale == {x["permission_id"] for x in truth["stale_safe_to_revoke"]}, f"{len(stale)} recomputed")
+
+    def paths(owner: User, file_id: str) -> list[Permission]:
+        out = []
+        for p in perms_by_file[file_id]:
+            if (p.principal_type == "user" and p.principal_id == owner.id) \
+                    or (p.principal_type == "group" and p.principal_id in (f"g-{owner.department.lower()}", seed.ALL_STAFF)) \
+                    or p.principal_type == seed.EVERYONE or p.link_scope == "organization":
+                out.append(p)
+        return out
+
+    breaking: set[str] = set()
+    for f in flows:
+        if f.raw_definition_json["properties"]["state"] != "Started" or f.connection_type != "user":
+            continue
+        ps = paths(users[f.owner_user_id], f.target_file_id)
+        if len(ps) == 1 and ps[0].inherited_from is None:
+            breaking.add(ps[0].id)
+    check("3d workflow-breaking set recomputed from DB == ground truth",
+          breaking == {x["permission_id"] for x in truth["workflow_breaking_permissions"]}, f"{len(breaking)} recomputed")
+    check("3e label sets: stale-safe never breaks a flow; benign grants unflagged",
+          not (stale & breaking) and not ({b["permission_id"] for b in truth["benign_broad_grants"]} & over))
+
+    # ---- 4. Graph v1.0 schema validation
+    adapter = get_adapter("simulator")
+    assert isinstance(adapter, SimulatorAdapter)
+    n_valid, bad = 0, []
+    for f in adapter.list_files():
+        for payload in adapter.list_item_permissions(f["id"]):
+            try:
+                GraphPermission.model_validate(payload)
+                n_valid += 1
+            except ValidationError as exc:
+                bad.append((payload["id"], str(exc)[:80]))
+    check("4a all permission payloads validate against Graph permission model",
+          not bad and n_valid == len(perms), f"{n_valid}/{len(perms)} valid {bad[:1]}")
+    scopes = {p["link"]["scope"] for f in adapter.list_files() for p in adapter.list_item_permissions(f["id"]) if "link" in p}
+    check("4b payloads include organization and anonymous links, inheritedFrom, grantedToV2",
+          {"organization", "anonymous"} <= scopes
+          and any("inheritedFrom" in p for f in adapter.list_files() for p in adapter.list_item_permissions(f["id"])),
+          f"link scopes={sorted(scopes)}")
+    try:
+        GraphPermission.model_validate({"id": "x", "roles": ["read"], "link": {"type": "view", "scope": "bogus", "webUrl": "u"}})
+        rejected = False
+    except ValidationError:
+        rejected = True
+    check("4c malformed payload (bad link.scope) is rejected", rejected)
+    flow_bad = []
+    for fl in adapter.list_flows():
+        try:
+            FlowResource.model_validate(fl)
+        except ValidationError as exc:
+            flow_bad.append(str(exc)[:80])
+    paths_ok = all(
+        any(a["inputs"]["parameters"]["path"] == files[fl.target_file_id].file_path
+            for a in fl.raw_definition_json["properties"]["definition"]["actions"].values()
+            if a["type"] == "OpenApiConnection")
+        for fl in flows)
+    check("4d flow definitions validate; each action references its target file path",
+          not flow_bad and paths_ok, f"{len(adapter.list_flows())} flows")
+
+    # ---- determinism
+    a, b = seed.build_dataset(), seed.build_dataset()
+    check("5 dataset generation is deterministic (seed 42)",
+          json.dumps(a["ground_truth"], sort_keys=True) == json.dumps(b["ground_truth"], sort_keys=True)
+          and [p["graph"] for p in a["permissions"]] == [p["graph"] for p in b["permissions"]])
+    return report()
+
+
+def report() -> int:
+    width = max(len(n) for n, _, _ in results)
+    print(f"\n{'CHECK'.ljust(width)}  RESULT  DETAIL")
+    print("-" * (width + 40))
+    for name, ok, detail in results:
+        print(f"{name.ljust(width)}  {'PASS' if ok else 'FAIL'}    {detail}")
+    failed = [n for n, ok, _ in results if not ok]
+    print(f"\n{len(results) - len(failed)}/{len(results)} checks passed")
+    return 1 if failed else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

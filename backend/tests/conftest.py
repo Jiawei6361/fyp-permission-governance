@@ -1,5 +1,5 @@
-"""Shared fixtures. Tests never touch the committed backend/fyp_governance.db: a seeded copy
-is built in a temp directory and FYP_DB_PATH points there before `main` is imported."""
+"""Shared fixtures. Tests never touch the committed databases: the simulator tenant is seeded
+into a temp directory, and FYP_TENANT_DB_PATH / FYP_DB_PATH point there before `main` is imported."""
 from __future__ import annotations
 
 import json
@@ -13,11 +13,12 @@ import pytest
 from backend import seed
 
 _TMP = Path(tempfile.mkdtemp(prefix="fyp-m2-"))
-SEEDED_DB = _TMP / "seeded.db"
+SEEDED_TENANT_DB = _TMP / "seeded_tenant.db"
 SEEDED_TRUTH = _TMP / "ground_truth.json"
-seed.seed_database(SEEDED_DB, SEEDED_TRUTH)
+seed.seed_database(SEEDED_TENANT_DB, SEEDED_TRUTH)
+os.environ["FYP_TENANT_DB_PATH"] = str(_TMP / "module_tenant.db")
+shutil.copy(SEEDED_TENANT_DB, os.environ["FYP_TENANT_DB_PATH"])
 os.environ["FYP_DB_PATH"] = str(_TMP / "module_app.db")
-shutil.copy(SEEDED_DB, os.environ["FYP_DB_PATH"])
 
 
 @pytest.fixture(scope="session")
@@ -26,19 +27,33 @@ def truth() -> dict:
 
 
 @pytest.fixture
-def db_path(tmp_path: Path) -> Path:
-    path = tmp_path / "fyp.db"
-    shutil.copy(SEEDED_DB, path)
+def tenant_db_path(tmp_path: Path) -> Path:
+    """A private, freshly seeded copy of the simulator database."""
+    path = tmp_path / "tenant_sim.db"
+    shutil.copy(SEEDED_TENANT_DB, path)
     return path
 
 
 @pytest.fixture
-def client(db_path: Path):
+def adapter(tenant_db_path: Path):
+    from backend.adapter import SimulatorAdapter
+
+    return SimulatorAdapter(tenant_db_path)
+
+
+@pytest.fixture
+def db_path(tmp_path: Path) -> Path:
+    """An empty app database path; `create_app` creates `assessments` in it."""
+    return tmp_path / "fyp.db"
+
+
+@pytest.fixture
+def client(db_path: Path, adapter):
     from fastapi.testclient import TestClient
 
     from backend.main import create_app
 
-    with TestClient(create_app(db_path)) as c:
+    with TestClient(create_app(db_path, adapter)) as c:
         yield c
 
 

@@ -2,7 +2,7 @@
 
     py backend/evaluate_benchmark.py
 
-Read-only against the seeded database (seeds it first only if it is missing). Writes
+Read-only against the simulator database (seeds it first only if it is missing). Writes
 backend/benchmark_results.json. Output is deterministic: no wall-clock values are recorded.
 
 Tasks
@@ -24,13 +24,12 @@ import json
 import sys
 from pathlib import Path
 
-from sqlalchemy.orm import Session
-
 if __package__ in (None, ""):  # run as `py backend/evaluate_benchmark.py`: make `backend` importable
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from backend.adapter import SimulatorAdapter
 from backend.flow_mapper import BREAKAGE_CRITICAL, SAFE_TO_REVOKE, classify
-from backend.models import DB_PATH, make_engine
+from backend.models import TENANT_DB_PATH
 from backend.scanner import load_snapshot, scan_permissions
 from backend.seed import GROUND_TRUTH_PATH, NOW, seed_database
 
@@ -45,14 +44,13 @@ def metrics(predicted: set[str], positives: set[str]) -> dict:
     return {"tp": tp, "fp": fp, "fn": fn, "precision": round(p, 4), "recall": round(r, 4), "f1": round(f1, 4)}
 
 
-def evaluate(db_path: Path | str = DB_PATH, truth_path: Path | str = GROUND_TRUTH_PATH) -> dict:
-    if not Path(db_path).exists():
-        seed_database(db_path, truth_path)
+def evaluate(tenant_db_path: Path | str = TENANT_DB_PATH, truth_path: Path | str = GROUND_TRUTH_PATH) -> dict:
+    if not Path(tenant_db_path).exists():
+        seed_database(tenant_db_path, truth_path)
     truth = json.loads(Path(truth_path).read_text(encoding="utf-8"))
-    with Session(make_engine(db_path)) as s:
-        snapshot = load_snapshot(s)
-        results = scan_permissions(snapshot, NOW)
-        assessed, profiles = classify(results, snapshot)
+    snapshot = load_snapshot(SimulatorAdapter(tenant_db_path))
+    results = scan_permissions(snapshot, NOW)
+    assessed, profiles = classify(results, snapshot)
 
     gt_overshared = {o["permission_id"] for o in truth["overshared_files"]}
     gt_safe = ({o["permission_id"] for o in truth["overshared_files"] if o["expected_action"] == "remove"}

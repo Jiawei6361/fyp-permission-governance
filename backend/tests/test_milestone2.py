@@ -8,7 +8,6 @@ from sqlalchemy import func, inspect, select
 from sqlalchemy.orm import Session
 
 from backend import seed
-from backend.adapter import SimulatorAdapter
 from backend.evaluate_benchmark import evaluate
 from backend.flow_mapper import MITIGATION, classify, parse_flow
 from backend.models import Assessment, Permission, User, init_db, make_engine
@@ -72,11 +71,10 @@ class TestScoring:
 
 # ---------------------------------------------------------------- engine vs ground truth
 @pytest.fixture
-def engine_output(db_path):
-    with Session(make_engine(db_path)) as s:
-        snap = load_snapshot(s)
-        results = scan_permissions(snap, NOW)
-        assessed, profiles = classify(results, snap)
+def engine_output(adapter):
+    snap = load_snapshot(adapter)
+    results = scan_permissions(snap, NOW)
+    assessed, profiles = classify(results, snap)
     return snap, results, assessed, profiles
 
 
@@ -144,27 +142,25 @@ def test_flow_parser_handles_nested_actions_and_dollar_connections(engine_output
     assert prof.connection_name == "c1"
 
 
-def test_scanning_graph_payloads_equals_scanning_db_rows(engine_output):
+def test_scanning_graph_payloads_equals_scanning_db_rows(engine_output, tenant_db_path):
+    """Facts built from the adapter's Graph payloads equal the flattened rows of the simulator database."""
     snap, results, _, _ = engine_output
-    adapter = SimulatorAdapter()
-    last = {p.permission_id: p.last_accessed_at for p in snap.permissions}
-    from_graph = [PermissionFacts.from_graph(g, f["id"], last[g["id"]])
-                  for f in adapter.list_files() for g in adapter.list_item_permissions(f["id"])]
-    scores_graph = {p.permission_id: score_permission(p, snap.files[p.file_id], NOW).score for p in from_graph}
-    assert scores_graph == {r.permission.permission_id: r.score for r in results}
+    with Session(make_engine(tenant_db_path)) as s:
+        from_rows = [PermissionFacts(p.id, p.file_id, p.principal_id, p.principal_type, tuple(p.roles_json),
+                                     p.link_scope, p.inherited_from, p.last_accessed_at)
+                     for p in s.scalars(select(Permission).order_by(Permission.file_id, Permission.id))]
+    assert from_rows == snap.permissions
+    scores_rows = {p.permission_id: score_permission(p, snap.files[p.file_id], NOW).score for p in from_rows}
+    assert scores_rows == {r.permission.permission_id: r.score for r in results}
 
 
 # ---------------------------------------------------------------- schema migration safety
-def test_init_db_adds_assessments_without_wiping_seeded_tables(tmp_path):
-    path = tmp_path / "legacy.db"
-    seed.seed_database(path, tmp_path / "gt.json")
-    eng = make_engine(path)
-    with eng.begin() as c:
-        c.exec_driver_sql("DROP TABLE assessments")  # simulate a Milestone 1 database
-    assert "assessments" not in inspect(eng).get_table_names()
-    init_db(eng)
-    assert "assessments" in inspect(make_engine(path)).get_table_names()
-    with Session(make_engine(path)) as s:
+def test_init_db_creates_only_app_tables_and_leaves_tenant_untouched(tmp_path, tenant_db_path):
+    app_db = tmp_path / "app.db"
+    init_db(make_engine(app_db))
+    assert inspect(make_engine(app_db)).get_table_names() == ["assessments", "remediation_plans", "remediation_steps"]
+    assert "assessments" not in inspect(make_engine(tenant_db_path)).get_table_names()
+    with Session(make_engine(tenant_db_path)) as s:
         assert s.scalar(select(func.count()).select_from(Permission)) == 337
         assert s.scalar(select(func.count()).select_from(User)) == 50
 
@@ -231,14 +227,14 @@ def test_get_single_assessment(client, scanned):
     assert client.get("/api/assessments/999999").status_code == 404
 
 
-def _permission_state(db_path):
-    with Session(make_engine(db_path)) as s:
+def _permission_state(tenant_db_path):
+    with Session(make_engine(tenant_db_path)) as s:
         return sorted((p.id, p.file_id, p.principal_id, tuple(p.roles_json), p.link_scope)
                       for p in s.scalars(select(Permission)))
 
 
-def test_dry_run_safe_to_revoke_previews_graph_delete_without_executing(client, scanned, db_path):
-    before = _permission_state(db_path)
+def test_dry_run_safe_to_revoke_previews_graph_delete_without_executing(client, scanned, tenant_db_path):
+    before = _permission_state(tenant_db_path)
     item = client.get("/api/assessments", params={"classification": "SAFE_TO_REVOKE"}).json()["items"][0]
     r = client.post(f"/api/assessments/{item['id']}/dry-run")
     assert r.status_code == 200
@@ -248,11 +244,11 @@ def test_dry_run_safe_to_revoke_previews_graph_delete_without_executing(client, 
     assert p["request"]["method"] == "DELETE" and p["request"]["path"] == path
     assert p["request"]["url"] == "https://graph.microsoft.com/v1.0" + path
     assert p["request"]["headers"]["Authorization"] == "Bearer <redacted>"
-    assert _permission_state(db_path) == before
+    assert _permission_state(tenant_db_path) == before
 
 
-def test_dry_run_breakage_critical_is_blocked_with_warning(client, scanned, db_path):
-    before = _permission_state(db_path)
+def test_dry_run_breakage_critical_is_blocked_with_warning(client, scanned, tenant_db_path):
+    before = _permission_state(tenant_db_path)
     items = client.get("/api/assessments", params={"classification": "BREAKAGE_CRITICAL"}).json()["items"]
     for item in items:
         p = client.post(f"/api/assessments/{item['id']}/dry-run").json()
@@ -262,7 +258,7 @@ def test_dry_run_breakage_critical_is_blocked_with_warning(client, scanned, db_p
             assert d["flow_id"] in p["warning"] and d["flow_name"] in p["warning"]
         assert p["breakage"] == item["dependent_flows"]
         assert p["preconditions"] and all(MITIGATION in pre for pre in p["preconditions"])
-    assert _permission_state(db_path) == before
+    assert _permission_state(tenant_db_path) == before
 
 
 def test_dry_run_keep_required_is_blocked(client, scanned):
@@ -288,10 +284,10 @@ def test_scoring_config_endpoint(client):
 
 
 # ---------------------------------------------------------------- benchmark
-def test_benchmark_proposed_beats_baseline(db_path, tmp_path):
+def test_benchmark_proposed_beats_baseline(tenant_db_path, tmp_path):
     truth_path = tmp_path / "gt.json"
-    seed.seed_database(db_path, truth_path)
-    res = evaluate(db_path, truth_path)
+    seed.seed_database(tenant_db_path, truth_path)
+    res = evaluate(tenant_db_path, truth_path)
     base, ours = res["engines"]["baseline"], res["engines"]["proposed"]
     assert base["revocation_recommendation"] == {"tp": 23, "fp": 7, "fn": 0, "precision": 0.7667,
                                                  "recall": 1.0, "f1": 0.8679}

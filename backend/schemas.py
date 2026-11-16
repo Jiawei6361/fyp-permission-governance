@@ -174,6 +174,62 @@ class AssessmentList(BaseModel):
     items: list[AssessmentOut] | list[ManagerCard]
 
 
+PlanState = Literal["DRAFT", "PENDING_APPROVAL", "APPROVED", "EXECUTING", "COMPLETED",
+                    "REJECTED", "ROLLING_BACK", "ROLLED_BACK", "ROLLBACK_FAILED"]
+Strategy = Literal["service_principal", "scoped_identity_grant"]
+
+
+class RemediationCreate(BaseModel):
+    assessment_id: int
+    strategy: Strategy = "service_principal"
+    created_by: str = "it-admin"
+
+
+class ActorIn(BaseModel):
+    """Who is acting. There is no authentication, so this is recorded as given."""
+    actor: str = "it-admin"
+
+
+class RemediationStepOut(BaseModel):
+    seq: int
+    action: str
+    status: str
+    before_state: dict | None
+    result: dict | None
+    error: str | None
+
+
+class RemediationPlanOut(BaseModel):
+    id: int
+    state: PlanState
+    assessment_id: int
+    scan_id: str
+    permission_id: str
+    file_id: str
+    file_name: str
+    site_name: str
+    principal_display: str
+    classification: Classification
+    risk_score: int
+    dependent_flows: list[FlowDependencyOut]
+    strategy: Strategy
+    exposed_before: int | None
+    exposed_after: int | None
+    created_by: str
+    approved_by: str | None
+    executed_by: str | None
+    created_at: datetime
+    approved_at: datetime | None
+    executed_at: datetime | None
+    finished_at: datetime | None
+    steps: list[RemediationStepOut]
+
+
+class RemediationPlanList(BaseModel):
+    total: int
+    items: list[RemediationPlanOut]
+
+
 class GraphRequestPreview(BaseModel):
     method: Literal["DELETE"]
     url: str

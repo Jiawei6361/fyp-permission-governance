@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { api } from "../api";
-import type { DryRunPreview, ReviewStatus, ViewRole } from "../types";
+import type { DryRunPreview, ReviewStatus, Strategy, ViewRole } from "../types";
 import { ClassificationBadge, Icon, Spinner } from "./ui";
 
 interface Props {
@@ -10,11 +10,15 @@ interface Props {
   status?: ReviewStatus;
   onClose: () => void;
   onConfirm: (id: number) => void;
+  /** Creates a remediation plan (DRAFT) for this finding. Admin view only. */
+  onCreatePlan: (id: number, strategy: Strategy) => Promise<void>;
 }
 
 const REQUIRED_MITIGATION = "Migrate flow connection to Service Principal first";
 
-export function DryRunModal({ assessmentId, fileName, role, status, onClose, onConfirm }: Props) {
+export function DryRunModal({ assessmentId, fileName, role, status, onClose, onConfirm, onCreatePlan }: Props) {
+  const [strategy, setStrategy] = useState<Strategy>("service_principal");
+  const [creating, setCreating] = useState(false);
   const [preview, setPreview] = useState<DryRunPreview | null>(null);
   const [error, setError] = useState<string | null>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -80,6 +84,28 @@ export function DryRunModal({ assessmentId, fileName, role, status, onClose, onC
             <button className="btn-danger" disabled title="Direct deletion is blocked by the breakage guardrail">
               <Icon name="lock" />Deletion blocked
             </button>
+          )}
+          {preview && role === "admin" && preview.classification !== "KEEP_REQUIRED" && (
+            <div className="flex w-full flex-wrap items-center justify-end gap-2 border-t border-slate-200 pt-3">
+              {preview.breakage.length > 0 && (
+                <label className="flex items-center gap-2 text-xs text-slate-600">
+                  Protect flows by
+                  <select className="rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-800"
+                          value={strategy} onChange={(e) => setStrategy(e.target.value as Strategy)}>
+                    <option value="service_principal">moving them to the service principal</option>
+                    <option value="scoped_identity_grant">a scoped grant to the flow's identity</option>
+                  </select>
+                </label>
+              )}
+              <button className="btn-primary" disabled={creating}
+                      onClick={() => {
+                        setCreating(true);
+                        void onCreatePlan(preview.assessment_id, strategy).finally(() => setCreating(false));
+                      }}>
+                {creating ? <Spinner /> : <Icon name="shield" />}
+                Create remediation plan
+              </button>
+            </div>
           )}
         </footer>
       </div>

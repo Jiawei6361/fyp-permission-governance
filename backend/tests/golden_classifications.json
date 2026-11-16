@@ -1,0 +1,3073 @@
+[
+ {
+  "permission_id": "Zi0wMDF8MQ",
+  "file_id": "f-001",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMDF8Mg",
+  "file_id": "f-001",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMDF8Mw",
+  "file_id": "f-001",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMDF8MzAy",
+  "file_id": "f-001",
+  "classification": "BREAKAGE_CRITICAL",
+  "risk_score": 70,
+  "is_overshared": true,
+  "is_stale": false,
+  "dependent_flow_ids": [
+   "flow-02"
+  ]
+ },
+ {
+  "permission_id": "Zi0wMDJ8NA",
+  "file_id": "f-002",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMDJ8NQ",
+  "file_id": "f-002",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMDJ8Ng",
+  "file_id": "f-002",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMDN8Nw",
+  "file_id": "f-003",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMDN8OA",
+  "file_id": "f-003",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMDN8OQ",
+  "file_id": "f-003",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMDR8MTA",
+  "file_id": "f-004",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 25,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMDR8MTE",
+  "file_id": "f-004",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 25,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMDR8MTI",
+  "file_id": "f-004",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 25,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMDV8MTM",
+  "file_id": "f-005",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMDV8MTQ",
+  "file_id": "f-005",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMDV8MTU",
+  "file_id": "f-005",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMDZ8MTY",
+  "file_id": "f-006",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMDZ8MTc",
+  "file_id": "f-006",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMDZ8MTg",
+  "file_id": "f-006",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMDZ8MzEx",
+  "file_id": "f-006",
+  "classification": "SAFE_TO_REVOKE",
+  "risk_score": 70,
+  "is_overshared": true,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMDd8MTk",
+  "file_id": "f-007",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 25,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMDd8MjA",
+  "file_id": "f-007",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 25,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMDd8MjE",
+  "file_id": "f-007",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 25,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMDh8MjI",
+  "file_id": "f-008",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMDh8MjM",
+  "file_id": "f-008",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMDh8MjQ",
+  "file_id": "f-008",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMDh8MzAz",
+  "file_id": "f-008",
+  "classification": "BREAKAGE_CRITICAL",
+  "risk_score": 80,
+  "is_overshared": true,
+  "is_stale": false,
+  "dependent_flow_ids": [
+   "flow-03"
+  ]
+ },
+ {
+  "permission_id": "Zi0wMDl8MjU",
+  "file_id": "f-009",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMDl8MjY",
+  "file_id": "f-009",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMDl8Mjc",
+  "file_id": "f-009",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMTB8Mjg",
+  "file_id": "f-010",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMTB8Mjk",
+  "file_id": "f-010",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMTB8MzA",
+  "file_id": "f-010",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMTB8MzMy",
+  "file_id": "f-010",
+  "classification": "SAFE_TO_REVOKE",
+  "risk_score": 15,
+  "is_overshared": false,
+  "is_stale": true,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMTF8MzE",
+  "file_id": "f-011",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMTF8MzI",
+  "file_id": "f-011",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMTF8MzI3",
+  "file_id": "f-011",
+  "classification": "SAFE_TO_REVOKE",
+  "risk_score": 55,
+  "is_overshared": false,
+  "is_stale": true,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMTF8MzM",
+  "file_id": "f-011",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMTJ8MzQ",
+  "file_id": "f-012",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMTJ8MzU",
+  "file_id": "f-012",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMTJ8MzY",
+  "file_id": "f-012",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMTN8Mzc",
+  "file_id": "f-013",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 25,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMTN8Mzg",
+  "file_id": "f-013",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 25,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMTN8Mzk",
+  "file_id": "f-013",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 25,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMTR8MzA1",
+  "file_id": "f-014",
+  "classification": "SAFE_TO_REVOKE",
+  "risk_score": 85,
+  "is_overshared": true,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMTR8NDA",
+  "file_id": "f-014",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMTR8NDE",
+  "file_id": "f-014",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMTR8NDI",
+  "file_id": "f-014",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMTV8MzM3",
+  "file_id": "f-015",
+  "classification": "SAFE_TO_REVOKE",
+  "risk_score": 55,
+  "is_overshared": false,
+  "is_stale": true,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMTV8NDM",
+  "file_id": "f-015",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMTV8NDQ",
+  "file_id": "f-015",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMTV8NDU",
+  "file_id": "f-015",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMTZ8NDY",
+  "file_id": "f-016",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMTZ8NDc",
+  "file_id": "f-016",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMTZ8NDg",
+  "file_id": "f-016",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMTd8NDk",
+  "file_id": "f-017",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMTd8NTA",
+  "file_id": "f-017",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMTd8NTE",
+  "file_id": "f-017",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMTh8MzA5",
+  "file_id": "f-018",
+  "classification": "SAFE_TO_REVOKE",
+  "risk_score": 75,
+  "is_overshared": true,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMTh8NTI",
+  "file_id": "f-018",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMTh8NTM",
+  "file_id": "f-018",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMTh8NTQ",
+  "file_id": "f-018",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMTl8NTU",
+  "file_id": "f-019",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMTl8NTY",
+  "file_id": "f-019",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMTl8NTc",
+  "file_id": "f-019",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMjB8MzA0",
+  "file_id": "f-020",
+  "classification": "BREAKAGE_CRITICAL",
+  "risk_score": 75,
+  "is_overshared": true,
+  "is_stale": false,
+  "dependent_flow_ids": [
+   "flow-04"
+  ]
+ },
+ {
+  "permission_id": "Zi0wMjB8NTg",
+  "file_id": "f-020",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMjB8NTk",
+  "file_id": "f-020",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMjB8NjA",
+  "file_id": "f-020",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMjF8NjE",
+  "file_id": "f-021",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": [
+   "flow-14"
+  ]
+ },
+ {
+  "permission_id": "Zi0wMjF8NjI",
+  "file_id": "f-021",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMjF8NjM",
+  "file_id": "f-021",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMjJ8NjQ",
+  "file_id": "f-022",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 25,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMjJ8NjU",
+  "file_id": "f-022",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 25,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMjJ8NjY",
+  "file_id": "f-022",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 25,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMjN8Njc",
+  "file_id": "f-023",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMjN8Njg",
+  "file_id": "f-023",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMjN8Njk",
+  "file_id": "f-023",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMjR8NzA",
+  "file_id": "f-024",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMjR8NzE",
+  "file_id": "f-024",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMjR8NzI",
+  "file_id": "f-024",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMjV8NzM",
+  "file_id": "f-025",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": [
+   "flow-20"
+  ]
+ },
+ {
+  "permission_id": "Zi0wMjV8NzQ",
+  "file_id": "f-025",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMjV8NzU",
+  "file_id": "f-025",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMjZ8MzIz",
+  "file_id": "f-026",
+  "classification": "SAFE_TO_REVOKE",
+  "risk_score": 55,
+  "is_overshared": false,
+  "is_stale": true,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMjZ8NzY",
+  "file_id": "f-026",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMjZ8Nzc",
+  "file_id": "f-026",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMjZ8Nzg",
+  "file_id": "f-026",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMjd8MzM1",
+  "file_id": "f-027",
+  "classification": "SAFE_TO_REVOKE",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": true,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMjd8Nzk",
+  "file_id": "f-027",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 25,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMjd8ODA",
+  "file_id": "f-027",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 25,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMjd8ODE",
+  "file_id": "f-027",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 25,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMjh8ODI",
+  "file_id": "f-028",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMjh8ODM",
+  "file_id": "f-028",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMjh8ODQ",
+  "file_id": "f-028",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMjl8ODU",
+  "file_id": "f-029",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMjl8ODY",
+  "file_id": "f-029",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMjl8ODc",
+  "file_id": "f-029",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMzB8ODg",
+  "file_id": "f-030",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMzB8ODk",
+  "file_id": "f-030",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMzB8OTA",
+  "file_id": "f-030",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMzF8MzI0",
+  "file_id": "f-031",
+  "classification": "SAFE_TO_REVOKE",
+  "risk_score": 15,
+  "is_overshared": false,
+  "is_stale": true,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMzF8OTE",
+  "file_id": "f-031",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMzF8OTI",
+  "file_id": "f-031",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMzF8OTM",
+  "file_id": "f-031",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMzJ8OTQ",
+  "file_id": "f-032",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMzJ8OTU",
+  "file_id": "f-032",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMzJ8OTY",
+  "file_id": "f-032",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMzN8OTc",
+  "file_id": "f-033",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMzN8OTg",
+  "file_id": "f-033",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMzN8OTk",
+  "file_id": "f-033",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMzR8MTAw",
+  "file_id": "f-034",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMzR8MTAx",
+  "file_id": "f-034",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMzR8MTAy",
+  "file_id": "f-034",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMzR8MzI2",
+  "file_id": "f-034",
+  "classification": "SAFE_TO_REVOKE",
+  "risk_score": 15,
+  "is_overshared": false,
+  "is_stale": true,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMzV8MTA0",
+  "file_id": "f-035",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMzV8MTA1",
+  "file_id": "f-035",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMzV8MTAz",
+  "file_id": "f-035",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMzZ8MTA2",
+  "file_id": "f-036",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMzZ8MTA3",
+  "file_id": "f-036",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMzZ8MTA4",
+  "file_id": "f-036",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMzd8MTA5",
+  "file_id": "f-037",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMzd8MTEw",
+  "file_id": "f-037",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMzd8MTEx",
+  "file_id": "f-037",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMzh8MTE0",
+  "file_id": "f-038",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMzh8MTEy",
+  "file_id": "f-038",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMzh8MTEz",
+  "file_id": "f-038",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMzl8MTE1",
+  "file_id": "f-039",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMzl8MTE2",
+  "file_id": "f-039",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wMzl8MTE3",
+  "file_id": "f-039",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNDB8MTE4",
+  "file_id": "f-040",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNDB8MTE5",
+  "file_id": "f-040",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNDB8MTIw",
+  "file_id": "f-040",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNDB8MzE2",
+  "file_id": "f-040",
+  "classification": "BREAKAGE_CRITICAL",
+  "risk_score": 15,
+  "is_overshared": false,
+  "is_stale": true,
+  "dependent_flow_ids": [
+   "flow-06"
+  ]
+ },
+ {
+  "permission_id": "Zi0wNDF8MTIx",
+  "file_id": "f-041",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 25,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNDF8MTIy",
+  "file_id": "f-041",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 25,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNDF8MTIz",
+  "file_id": "f-041",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 25,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNDJ8MTI0",
+  "file_id": "f-042",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 25,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNDJ8MTI1",
+  "file_id": "f-042",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 25,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNDJ8MTI2",
+  "file_id": "f-042",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 25,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNDN8MTI3",
+  "file_id": "f-043",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 25,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNDN8MTI4",
+  "file_id": "f-043",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 25,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNDN8MTI5",
+  "file_id": "f-043",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 25,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNDN8MzE4",
+  "file_id": "f-043",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 25,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": [
+   "flow-08"
+  ]
+ },
+ {
+  "permission_id": "Zi0wNDR8MTMw",
+  "file_id": "f-044",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNDR8MTMx",
+  "file_id": "f-044",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNDR8MTMy",
+  "file_id": "f-044",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNDV8MTM0",
+  "file_id": "f-045",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNDV8MTM1",
+  "file_id": "f-045",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNDV8MTMz",
+  "file_id": "f-045",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNDZ8MTM2",
+  "file_id": "f-046",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNDZ8MTM3",
+  "file_id": "f-046",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNDZ8MTM4",
+  "file_id": "f-046",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNDZ8MzEw",
+  "file_id": "f-046",
+  "classification": "SAFE_TO_REVOKE",
+  "risk_score": 70,
+  "is_overshared": true,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNDd8MTM5",
+  "file_id": "f-047",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNDd8MTQw",
+  "file_id": "f-047",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNDd8MTQx",
+  "file_id": "f-047",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNDd8MzA2",
+  "file_id": "f-047",
+  "classification": "SAFE_TO_REVOKE",
+  "risk_score": 85,
+  "is_overshared": true,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNDh8MTQ0",
+  "file_id": "f-048",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNDh8MTQy",
+  "file_id": "f-048",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNDh8MTQz",
+  "file_id": "f-048",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNDh8MzI1",
+  "file_id": "f-048",
+  "classification": "SAFE_TO_REVOKE",
+  "risk_score": 55,
+  "is_overshared": false,
+  "is_stale": true,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNDl8MTQ1",
+  "file_id": "f-049",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 25,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNDl8MTQ2",
+  "file_id": "f-049",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 25,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNDl8MTQ3",
+  "file_id": "f-049",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 25,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNTB8MTQ4",
+  "file_id": "f-050",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 25,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNTB8MTQ5",
+  "file_id": "f-050",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 25,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNTB8MTUw",
+  "file_id": "f-050",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 25,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNTF8MTUx",
+  "file_id": "f-051",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNTF8MTUy",
+  "file_id": "f-051",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNTF8MTUz",
+  "file_id": "f-051",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNTF8MzA4",
+  "file_id": "f-051",
+  "classification": "SAFE_TO_REVOKE",
+  "risk_score": 75,
+  "is_overshared": true,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNTJ8MTU0",
+  "file_id": "f-052",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNTJ8MTU1",
+  "file_id": "f-052",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNTJ8MTU2",
+  "file_id": "f-052",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNTJ8MzA3",
+  "file_id": "f-052",
+  "classification": "SAFE_TO_REVOKE",
+  "risk_score": 85,
+  "is_overshared": true,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNTN8MTU3",
+  "file_id": "f-053",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNTN8MTU4",
+  "file_id": "f-053",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNTN8MTU5",
+  "file_id": "f-053",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNTN8MzMw",
+  "file_id": "f-053",
+  "classification": "SAFE_TO_REVOKE",
+  "risk_score": 55,
+  "is_overshared": false,
+  "is_stale": true,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNTR8MTYw",
+  "file_id": "f-054",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNTR8MTYx",
+  "file_id": "f-054",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNTR8MTYy",
+  "file_id": "f-054",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNTV8MTY0",
+  "file_id": "f-055",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 25,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNTV8MTY1",
+  "file_id": "f-055",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 25,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNTV8MTYz",
+  "file_id": "f-055",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 25,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNTZ8MTY2",
+  "file_id": "f-056",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNTZ8MTY3",
+  "file_id": "f-056",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNTZ8MTY4",
+  "file_id": "f-056",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNTZ8MzAx",
+  "file_id": "f-056",
+  "classification": "BREAKAGE_CRITICAL",
+  "risk_score": 75,
+  "is_overshared": true,
+  "is_stale": false,
+  "dependent_flow_ids": [
+   "flow-01"
+  ]
+ },
+ {
+  "permission_id": "Zi0wNTd8MTY5",
+  "file_id": "f-057",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 25,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNTd8MTcw",
+  "file_id": "f-057",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 25,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNTd8MTcx",
+  "file_id": "f-057",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 25,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNTh8MTc0",
+  "file_id": "f-058",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNTh8MTcy",
+  "file_id": "f-058",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNTh8MTcz",
+  "file_id": "f-058",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNTl8MTc1",
+  "file_id": "f-059",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": [
+   "flow-23"
+  ]
+ },
+ {
+  "permission_id": "Zi0wNTl8MTc2",
+  "file_id": "f-059",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNTl8MTc3",
+  "file_id": "f-059",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNjB8MTc4",
+  "file_id": "f-060",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNjB8MTc5",
+  "file_id": "f-060",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNjB8MTgw",
+  "file_id": "f-060",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNjF8MTgx",
+  "file_id": "f-061",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNjF8MTgy",
+  "file_id": "f-061",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNjF8MTgz",
+  "file_id": "f-061",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNjF8MzE1",
+  "file_id": "f-061",
+  "classification": "BREAKAGE_CRITICAL",
+  "risk_score": 15,
+  "is_overshared": false,
+  "is_stale": true,
+  "dependent_flow_ids": [
+   "flow-05"
+  ]
+ },
+ {
+  "permission_id": "Zi0wNjJ8MTg0",
+  "file_id": "f-062",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNjJ8MTg1",
+  "file_id": "f-062",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNjJ8MTg2",
+  "file_id": "f-062",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNjN8MTg3",
+  "file_id": "f-063",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNjN8MTg4",
+  "file_id": "f-063",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNjN8MTg5",
+  "file_id": "f-063",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNjR8MTkw",
+  "file_id": "f-064",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 25,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNjR8MTkx",
+  "file_id": "f-064",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 25,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNjR8MTky",
+  "file_id": "f-064",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 25,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNjV8MTk0",
+  "file_id": "f-065",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNjV8MTk1",
+  "file_id": "f-065",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNjV8MTkz",
+  "file_id": "f-065",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNjZ8MTk2",
+  "file_id": "f-066",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNjZ8MTk3",
+  "file_id": "f-066",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNjZ8MTk4",
+  "file_id": "f-066",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNjZ8MzE5",
+  "file_id": "f-066",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": [
+   "flow-09"
+  ]
+ },
+ {
+  "permission_id": "Zi0wNjd8MTk5",
+  "file_id": "f-067",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNjd8MjAw",
+  "file_id": "f-067",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNjd8MjAx",
+  "file_id": "f-067",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNjh8MjA0",
+  "file_id": "f-068",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNjh8MjAy",
+  "file_id": "f-068",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": [
+   "flow-18"
+  ]
+ },
+ {
+  "permission_id": "Zi0wNjh8MjAz",
+  "file_id": "f-068",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNjl8MjA1",
+  "file_id": "f-069",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNjl8MjA2",
+  "file_id": "f-069",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNjl8MjA3",
+  "file_id": "f-069",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNzB8MjA4",
+  "file_id": "f-070",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNzB8MjA5",
+  "file_id": "f-070",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNzB8MjEw",
+  "file_id": "f-070",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNzB8MzE3",
+  "file_id": "f-070",
+  "classification": "BREAKAGE_CRITICAL",
+  "risk_score": 55,
+  "is_overshared": false,
+  "is_stale": true,
+  "dependent_flow_ids": [
+   "flow-07"
+  ]
+ },
+ {
+  "permission_id": "Zi0wNzF8MjEx",
+  "file_id": "f-071",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNzF8MjEy",
+  "file_id": "f-071",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNzF8MjEz",
+  "file_id": "f-071",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNzJ8MjE0",
+  "file_id": "f-072",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNzJ8MjE1",
+  "file_id": "f-072",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNzJ8MjE2",
+  "file_id": "f-072",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNzN8MjE3",
+  "file_id": "f-073",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNzN8MjE4",
+  "file_id": "f-073",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNzN8MjE5",
+  "file_id": "f-073",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNzN8MzEy",
+  "file_id": "f-073",
+  "classification": "SAFE_TO_REVOKE",
+  "risk_score": 70,
+  "is_overshared": true,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNzR8MjIw",
+  "file_id": "f-074",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNzR8MjIx",
+  "file_id": "f-074",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNzR8MjIy",
+  "file_id": "f-074",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNzV8MjI0",
+  "file_id": "f-075",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 25,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNzV8MjI1",
+  "file_id": "f-075",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 25,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNzV8MjIz",
+  "file_id": "f-075",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 25,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNzV8MzIy",
+  "file_id": "f-075",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 25,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": [
+   "flow-12"
+  ]
+ },
+ {
+  "permission_id": "Zi0wNzZ8MjI2",
+  "file_id": "f-076",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNzZ8MjI3",
+  "file_id": "f-076",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNzZ8MjI4",
+  "file_id": "f-076",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNzd8MjI5",
+  "file_id": "f-077",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNzd8MjMw",
+  "file_id": "f-077",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNzd8MjMx",
+  "file_id": "f-077",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNzh8MjM0",
+  "file_id": "f-078",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNzh8MjMy",
+  "file_id": "f-078",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNzh8MjMz",
+  "file_id": "f-078",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNzl8MjM1",
+  "file_id": "f-079",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNzl8MjM2",
+  "file_id": "f-079",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wNzl8MjM3",
+  "file_id": "f-079",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 40,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wODB8MjM4",
+  "file_id": "f-080",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wODB8MjM5",
+  "file_id": "f-080",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wODB8MjQw",
+  "file_id": "f-080",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wODB8MzMz",
+  "file_id": "f-080",
+  "classification": "SAFE_TO_REVOKE",
+  "risk_score": 15,
+  "is_overshared": false,
+  "is_stale": true,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wODF8MjQx",
+  "file_id": "f-081",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wODF8MjQy",
+  "file_id": "f-081",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wODF8MjQz",
+  "file_id": "f-081",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wODJ8MjQ0",
+  "file_id": "f-082",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wODJ8MjQ1",
+  "file_id": "f-082",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wODJ8MjQ2",
+  "file_id": "f-082",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wODN8MjQ3",
+  "file_id": "f-083",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wODN8MjQ4",
+  "file_id": "f-083",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wODN8MjQ5",
+  "file_id": "f-083",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wODN8MzM0",
+  "file_id": "f-083",
+  "classification": "SAFE_TO_REVOKE",
+  "risk_score": 15,
+  "is_overshared": false,
+  "is_stale": true,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wODR8MjUw",
+  "file_id": "f-084",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wODR8MjUx",
+  "file_id": "f-084",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wODR8MjUy",
+  "file_id": "f-084",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wODR8MzIw",
+  "file_id": "f-084",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": [
+   "flow-10"
+  ]
+ },
+ {
+  "permission_id": "Zi0wODV8MjU0",
+  "file_id": "f-085",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wODV8MjU1",
+  "file_id": "f-085",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wODV8MjUz",
+  "file_id": "f-085",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": [
+   "flow-13"
+  ]
+ },
+ {
+  "permission_id": "Zi0wODZ8MjU2",
+  "file_id": "f-086",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": [
+   "flow-19"
+  ]
+ },
+ {
+  "permission_id": "Zi0wODZ8MjU3",
+  "file_id": "f-086",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wODZ8MjU4",
+  "file_id": "f-086",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wODd8MjU5",
+  "file_id": "f-087",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": [
+   "flow-24"
+  ]
+ },
+ {
+  "permission_id": "Zi0wODd8MjYw",
+  "file_id": "f-087",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wODd8MjYx",
+  "file_id": "f-087",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wODh8MjY0",
+  "file_id": "f-088",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wODh8MjYy",
+  "file_id": "f-088",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wODh8MjYz",
+  "file_id": "f-088",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wODl8MjY1",
+  "file_id": "f-089",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wODl8MjY2",
+  "file_id": "f-089",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wODl8MjY3",
+  "file_id": "f-089",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wODl8MzI4",
+  "file_id": "f-089",
+  "classification": "SAFE_TO_REVOKE",
+  "risk_score": 15,
+  "is_overshared": false,
+  "is_stale": true,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wOTB8MjY4",
+  "file_id": "f-090",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wOTB8MjY5",
+  "file_id": "f-090",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wOTB8Mjcw",
+  "file_id": "f-090",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wOTF8Mjcx",
+  "file_id": "f-091",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wOTF8Mjcy",
+  "file_id": "f-091",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wOTF8Mjcz",
+  "file_id": "f-091",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wOTF8MzE0",
+  "file_id": "f-091",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 35,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wOTJ8Mjc0",
+  "file_id": "f-092",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wOTJ8Mjc1",
+  "file_id": "f-092",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wOTJ8Mjc2",
+  "file_id": "f-092",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wOTJ8MzMx",
+  "file_id": "f-092",
+  "classification": "SAFE_TO_REVOKE",
+  "risk_score": 15,
+  "is_overshared": false,
+  "is_stale": true,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wOTN8Mjc3",
+  "file_id": "f-093",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wOTN8Mjc4",
+  "file_id": "f-093",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wOTN8Mjc5",
+  "file_id": "f-093",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wOTN8MzM2",
+  "file_id": "f-093",
+  "classification": "SAFE_TO_REVOKE",
+  "risk_score": 15,
+  "is_overshared": false,
+  "is_stale": true,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wOTR8Mjgw",
+  "file_id": "f-094",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wOTR8Mjgx",
+  "file_id": "f-094",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wOTR8Mjgy",
+  "file_id": "f-094",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wOTR8MzI5",
+  "file_id": "f-094",
+  "classification": "SAFE_TO_REVOKE",
+  "risk_score": 15,
+  "is_overshared": false,
+  "is_stale": true,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wOTV8Mjg0",
+  "file_id": "f-095",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wOTV8Mjg1",
+  "file_id": "f-095",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wOTV8Mjgz",
+  "file_id": "f-095",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wOTZ8Mjg2",
+  "file_id": "f-096",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wOTZ8Mjg3",
+  "file_id": "f-096",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wOTZ8Mjg4",
+  "file_id": "f-096",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wOTd8Mjg5",
+  "file_id": "f-097",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wOTd8Mjkw",
+  "file_id": "f-097",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wOTd8Mjkx",
+  "file_id": "f-097",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wOTd8MzEz",
+  "file_id": "f-097",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 35,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wOTh8Mjk0",
+  "file_id": "f-098",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wOTh8Mjky",
+  "file_id": "f-098",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wOTh8Mjkz",
+  "file_id": "f-098",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wOTl8Mjk1",
+  "file_id": "f-099",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wOTl8Mjk2",
+  "file_id": "f-099",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wOTl8Mjk3",
+  "file_id": "f-099",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wOTl8MzIx",
+  "file_id": "f-099",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": [
+   "flow-11"
+  ]
+ },
+ {
+  "permission_id": "Zi0xMDB8Mjk4",
+  "file_id": "f-100",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0xMDB8Mjk5",
+  "file_id": "f-100",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0xMDB8MzAw",
+  "file_id": "f-100",
+  "classification": "KEEP_REQUIRED",
+  "risk_score": 0,
+  "is_overshared": false,
+  "is_stale": false,
+  "dependent_flow_ids": []
+ }
+]

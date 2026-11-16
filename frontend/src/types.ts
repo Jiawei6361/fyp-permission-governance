@@ -101,6 +101,53 @@ export interface DryRunPreview {
   preconditions: string[];
 }
 
+export type PlanState =
+  | "DRAFT" | "PENDING_APPROVAL" | "APPROVED" | "EXECUTING" | "COMPLETED"
+  | "REJECTED" | "ROLLING_BACK" | "ROLLED_BACK" | "ROLLBACK_FAILED";
+export type Strategy = "service_principal" | "scoped_identity_grant";
+export type StepStatus = "PENDING" | "SUCCEEDED" | "FAILED" | "SKIPPED" | "ROLLED_BACK" | "ROLLBACK_FAILED";
+
+export interface FlowRun {
+  flow_id: string;
+  status: "Succeeded" | "Failed";
+  error: { status: number; code: string; action: string; file_id: string | null; message: string } | null;
+}
+
+export interface RemediationStep {
+  seq: number;
+  action: string;
+  status: StepStatus;
+  before_state: Record<string, unknown> | null;
+  result: { runs?: FlowRun[]; permission_removed?: boolean } | null;
+  error: string | null;
+}
+
+export interface RemediationPlan {
+  id: number;
+  state: PlanState;
+  assessment_id: number;
+  scan_id: string;
+  permission_id: string;
+  file_id: string;
+  file_name: string;
+  site_name: string;
+  principal_display: string;
+  classification: Classification;
+  risk_score: number;
+  dependent_flows: FlowDependency[];
+  strategy: Strategy;
+  exposed_before: number | null;
+  exposed_after: number | null;
+  created_by: string;
+  approved_by: string | null;
+  executed_by: string | null;
+  created_at: string;
+  approved_at: string | null;
+  executed_at: string | null;
+  finished_at: string | null;
+  steps: RemediationStep[];
+}
+
 export interface Confusion {
   tp: number;
   fp: number;
@@ -135,5 +182,5 @@ export interface BenchmarkResults {
   workflow_breakage_prevention_rate_pct: number;
 }
 
-/** Local (browser-only) review decision. Nothing is written to the tenant in M3. */
+/** Local (browser-only) review decision. Only remediation plans change the tenant. */
 export type ReviewStatus = "Approved (Dry-Run)" | "Approved Safe Cleanup" | "Keep Access";

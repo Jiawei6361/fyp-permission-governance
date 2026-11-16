@@ -10,7 +10,7 @@ export function Spinner({ className = "h-4 w-4" }: { className?: string }) {
   );
 }
 
-type IconName = "shield" | "file" | "alert" | "flow" | "check" | "x" | "play" | "lock" | "sparkle" | "eye";
+type IconName = "shield" | "file" | "alert" | "flow" | "check" | "x" | "play" | "lock" | "sparkle" | "eye" | "undo";
 
 const PATHS: Record<IconName, ReactNode> = {
   shield: <path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z" />,
@@ -40,6 +40,12 @@ const PATHS: Record<IconName, ReactNode> = {
     <>
       <rect x="5" y="11" width="14" height="10" rx="2" />
       <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+    </>
+  ),
+  undo: (
+    <>
+      <path d="M9 14L4 9l5-5" />
+      <path d="M4 9h10a6 6 0 0 1 0 12h-3" />
     </>
   ),
   sparkle: <path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z" />,

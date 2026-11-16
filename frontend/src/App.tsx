@@ -4,11 +4,13 @@ import { BenchmarkView } from "./components/BenchmarkView";
 import { DryRunModal } from "./components/DryRunModal";
 import { FindingsView } from "./components/FindingsView";
 import { KpiBar, type Kpis } from "./components/KpiBar";
+import { RemediationsView } from "./components/RemediationsView";
 import { ToastStack, useToasts } from "./components/Toasts";
 import { Icon, Spinner } from "./components/ui";
-import type { AssessmentOut, ManagerCard, ReviewStatus, ScanSummary, ViewRole } from "./types";
+import type { AssessmentOut, ManagerCard, ReviewStatus, ScanSummary, Strategy, ViewRole } from "./types";
 
-type Page = "findings" | "benchmark";
+type Page = "findings" | "remediations" | "benchmark";
+const PAGES: Page[] = ["findings", "remediations", "benchmark"];
 type LoadState = "loading" | "ready" | "no-scan" | "offline";
 
 const reviewKey = (scanId: string) => `lumira.reviews.${scanId}`;
@@ -40,9 +42,10 @@ function deriveKpis(summary: ScanSummary | null, items: AssessmentOut[]): Kpis |
 
 export default function App() {
   const { toasts, push, dismiss } = useToasts();
-  // Deep links for demos: #benchmark, ?role=manager, ?preview=<assessment id>
+  // Deep links for demos: #remediations, #benchmark, ?role=manager, ?preview=<assessment id>, ?plan=<plan id>
   const params = new URLSearchParams(window.location.search);
-  const [page, setPageState] = useState<Page>(window.location.hash === "#benchmark" ? "benchmark" : "findings");
+  const [page, setPageState] = useState<Page>(PAGES.find((p) => `#${p}` === window.location.hash) ?? "findings");
+  const [planId, setPlanId] = useState<number | null>(() => Number(params.get("plan")) || null);
   const [role, setRole] = useState<ViewRole>(params.get("role") === "manager" ? "manager" : "admin");
   const [state, setState] = useState<LoadState>("loading");
   const [scanning, setScanning] = useState(false);
@@ -108,6 +111,18 @@ export default function App() {
     push("success", status, `${name}: decision recorded for this scan (no tenant change).`);
   };
 
+  const createPlan = async (assessmentId: number, strategy: Strategy) => {
+    try {
+      const plan = await api.createRemediation(assessmentId, strategy);
+      setPreviewId(null);
+      setPlanId(plan.id);
+      setPage("remediations");
+      push("success", `Remediation plan #${plan.id} created`, `${plan.file_name}: draft, nothing has changed yet.`);
+    } catch (e) {
+      push("error", "Could not create the plan", (e as Error).message);
+    }
+  };
+
   const kpis = useMemo(() => deriveKpis(summary, adminItems), [summary, adminItems]);
   const previewName = previewId === null ? ""
     : adminItems.find((a) => a.id === previewId)?.file_name ?? managerItems.find((c) => c.id === previewId)?.file_name ?? "";
@@ -134,7 +149,7 @@ export default function App() {
           </button>
         </div>
         <nav className="mx-auto flex max-w-7xl gap-6 px-4 sm:px-6" aria-label="Sections">
-          {([["findings", "Findings & Remediation"], ["benchmark", "Evaluation & Proof"]] as const).map(([id, label]) => (
+          {([["findings", "Findings"], ["remediations", "Remediations"], ["benchmark", "Evaluation & Proof"]] as const).map(([id, label]) => (
             <button key={id} onClick={() => setPage(id)} aria-current={page === id ? "page" : undefined}
                     className={`border-b-2 pb-3 text-sm font-medium transition ${
                       page === id ? "border-indigo-600 text-indigo-700" : "border-transparent text-slate-500 hover:text-slate-800"}`}>
@@ -178,6 +193,8 @@ export default function App() {
                             reviews={reviews} onReview={setReview} onPreview={setPreviewId} />
             )}
           </>
+        ) : page === "remediations" ? (
+          <RemediationsView selectedId={planId} onSelect={setPlanId} notify={push} />
         ) : (
           <BenchmarkView />
         )}
@@ -186,7 +203,7 @@ export default function App() {
       {previewId !== null && (
         <DryRunModal assessmentId={previewId} fileName={previewName} role={role} status={reviews[previewId]}
                      onClose={() => setPreviewId(null)}
-                     onConfirm={(id) => setReview(id, "Approved (Dry-Run)")} />
+                     onConfirm={(id) => setReview(id, "Approved (Dry-Run)")} onCreatePlan={createPlan} />
       )}
       <ToastStack toasts={toasts} onDismiss={dismiss} />
     </div>

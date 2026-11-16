@@ -14,8 +14,8 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass
 
-from backend.models import Flow, User
-from backend.scanner import EVERYONE, ORG_WIDE_GROUPS, PermissionFacts, RiskResult, TenantSnapshot
+from backend.scanner import (EVERYONE, ORG_WIDE_GROUPS, FlowFacts, PermissionFacts, RiskResult, TenantSnapshot,
+                             UserFacts)
 
 SHAREPOINT_API = "shared_sharepointonline"
 WRITE_OPERATIONS = frozenset({"UpdateFile", "CreateFile", "DeleteFile", "CopyFileAsync", "MoveFileAsync",
@@ -93,7 +93,7 @@ def _walk_actions(actions: dict):
             yield from _walk_actions(case.get("actions") or {})
 
 
-def parse_flow(flow: Flow, files_by_path: dict[str, str]) -> FlowProfile:
+def parse_flow(flow: FlowFacts, files_by_path: dict[str, str]) -> FlowProfile:
     raw = flow.raw_definition_json
     props = raw.get("properties", {})
     sp_refs = _sharepoint_connection_keys(props)
@@ -118,16 +118,14 @@ def parse_flow(flow: Flow, files_by_path: dict[str, str]) -> FlowProfile:
         actions.append(FlowAction("(unresolved action)", "", flow.target_file_id, None, "read"))
 
     sp_conn_name = next(iter(sp_refs.values()), None)
-    identity = None
-    if flow.connection_type == "user":
-        creator = props.get("creator") or {}
-        identity = flow.owner_user_id or creator.get("objectId")
+    # A delegated connection runs as the user it is signed in as; a service principal has no user identity.
+    identity = flow.connection_user_id if flow.connection_type == "user" else None
     return FlowProfile(flow.id, flow.flow_name, props.get("state", "Unknown"), bool(flow.is_critical),
                        flow.connection_type, sp_conn_name, identity, actions)
 
 
 # ---------------------------------------------------------------- access-path analysis
-def grants_access(p: PermissionFacts, user: User) -> bool:
+def grants_access(p: PermissionFacts, user: UserFacts) -> bool:
     """Does permission `p` give `user` access to its file? Mirrors the ground-truth access model."""
     internal = user.department != "External"
     if p.principal_type == "user":

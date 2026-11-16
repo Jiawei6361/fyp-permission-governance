@@ -1,4 +1,4 @@
-"""Milestone 1 verification. Exits 0 only if every check passes."""
+"""Milestone 1 verification. Reseeds the simulator database (tenant_sim.db). Exits 0 only if every check passes."""
 from __future__ import annotations
 
 import json
@@ -15,8 +15,8 @@ if __package__ in (None, ""):  # run as a file path: make `backend` importable
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from backend import seed
-from backend.adapter import SimulatorAdapter, get_adapter
-from backend.models import DB_PATH, Base, File, Flow, Permission, User, make_engine
+from backend.adapter import LiveGraphAdapter, SimulatorAdapter, get_adapter
+from backend.models import TENANT_DB_PATH, AppBase, File, Flow, Permission, TenantBase, User, make_engine
 from backend.schemas import FlowResource, Permission as GraphPermission
 
 results: list[tuple[str, bool, str]] = []
@@ -31,14 +31,15 @@ def main() -> int:
     # ---- 1. clean initialisation
     try:
         seed.seed_database()
-        engine = make_engine(DB_PATH)
+        engine = make_engine(TENANT_DB_PATH)
         insp = inspect(engine)
-        expected = {t.name: {c.name for c in t.columns} for t in Base.metadata.sorted_tables}
+        expected = {t.name: {c.name for c in t.columns} for t in TenantBase.metadata.sorted_tables}
         actual = {t: {c["name"] for c in insp.get_columns(t)} for t in insp.get_table_names()}
         with engine.connect() as c:
             integrity = c.execute(text("PRAGMA integrity_check")).scalar()
             fk_viol = c.execute(text("PRAGMA foreign_key_check")).fetchall()
-        check("1a schema created, tables/columns match models", actual == expected, f"{sorted(actual)}")
+        check("1a tenant schema created, tables/columns match models; no app tables in it",
+              actual == expected and not set(actual) & set(AppBase.metadata.tables), f"{sorted(actual)}")
         check("1b PRAGMA integrity_check ok, foreign_key_check empty", integrity == "ok" and not fk_viol,
               f"integrity={integrity}, fk_violations={len(fk_viol)}")
     except Exception as exc:  # noqa: BLE001
@@ -115,8 +116,8 @@ def main() -> int:
           not (stale & breaking) and not ({b["permission_id"] for b in truth["benign_broad_grants"]} & over))
 
     # ---- 4. Graph v1.0 schema validation
-    adapter = get_adapter("simulator")
-    assert isinstance(adapter, SimulatorAdapter)
+    adapter = SimulatorAdapter(TENANT_DB_PATH)
+    assert isinstance(get_adapter("live"), LiveGraphAdapter)
     n_valid, bad = 0, []
     for f in adapter.list_files():
         for payload in adapter.list_item_permissions(f["id"]):
@@ -157,6 +158,21 @@ def main() -> int:
     check("5 dataset generation is deterministic (seed 42)",
           json.dumps(a["ground_truth"], sort_keys=True) == json.dumps(b["ground_truth"], sort_keys=True)
           and [p["graph"] for p in a["permissions"]] == [p["graph"] for p in b["permissions"]])
+
+    # ---- 6. the adapter serves the database, and is stateful
+    served = {p["id"]: p for f in adapter.list_files() for p in adapter.list_item_permissions(f["id"])}
+    check("6a adapter serves the seeded Graph payloads from tenant_sim.db",
+          served == {p["graph"]["id"]: p["graph"] for p in a["permissions"]}, f"{len(served)} payloads")
+    seeded = adapter.state_checksum()
+    victim = truth["workflow_breaking_permissions"][0]
+    ok_before = adapter.run_flow(victim["flow_ids"][0])["status"]
+    adapter.delete_item_permission(victim["file_id"], victim["permission_id"])
+    failed = adapter.run_flow(victim["flow_ids"][0])
+    changed = adapter.state_checksum() != seeded
+    adapter.reset()
+    check("6b delete breaks the dependent flow (403); reset() restores the checksum",
+          ok_before == "Succeeded" and failed["status"] == "Failed" and failed["error"]["status"] == 403
+          and changed and adapter.state_checksum() == seeded, f"checksum {seeded[:12]}")
     return report()
 
 

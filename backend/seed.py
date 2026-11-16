@@ -2,7 +2,7 @@
 
 `build_dataset()` is pure and seeded (42): users, files, Graph-v1.0-shaped permission
 payloads, Power Automate flow definitions, and the planted ground truth.
-`seed_database()` writes it to SQLite and `ground_truth.json`.
+`seed_database()` writes it to the simulator database (`tenant_sim.db`) and `ground_truth.json`.
 
 Planted cases (see ground_truth.json):
   * 12 overshared files: Confidential/Highly Confidential, Copilot-indexed, exposed through an
@@ -28,7 +28,9 @@ from sqlalchemy.orm import Session
 if __package__ in (None, ""):  # run as `py backend/seed.py`: make `backend` importable
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from backend.models import DB_PATH, Base, File, Flow, Permission, User, make_engine
+from sqlalchemy.engine import Engine
+
+from backend.models import TENANT_DB_PATH, Connection, File, Flow, Permission, TenantBase, User, make_engine
 
 SEED = 42
 NOW = datetime(2026, 11, 15, 9, 0, 0)  # fixed reference time keeps the dataset deterministic
@@ -353,6 +355,8 @@ def permission_row(graph: dict, file_id: str, last_accessed_at: datetime) -> dic
         ptype, pid, scope = "group", granted["group"]["id"], None
     elif "siteUser" in granted:
         ptype, pid, scope = EVERYONE, EVERYONE, None
+    elif "application" in granted:  # a service principal; never seeded, only added by remediation
+        ptype, pid, scope = "application", granted["application"]["id"], None
     else:
         raise ValueError(f"cannot classify permission {graph['id']}")
     inh = graph.get("inheritedFrom")
@@ -361,22 +365,42 @@ def permission_row(graph: dict, file_id: str, last_accessed_at: datetime) -> dic
             "inherited_from": inh["path"] if inh else None, "last_accessed_at": last_accessed_at}
 
 
-def seed_database(db_path: Path | str = DB_PATH, truth_path: Path | str = GROUND_TRUTH_PATH) -> dict:
-    ds = build_dataset()
-    db_path = Path(db_path)
-    if db_path.exists():
-        db_path.unlink()
-    engine = make_engine(db_path)
-    Base.metadata.create_all(engine)
+SP_CONNECTION = "shared-sp-automation"
+# The Entra application behind the service principal connection.
+SP_APP = {"id": "app-lumira-automation", "displayName": "Lumira Automation"}
+
+
+def write_tenant_data(engine: Engine, ds: dict) -> None:
+    """Replace every tenant table in `engine` with dataset `ds`."""
+    TenantBase.metadata.drop_all(engine)
+    TenantBase.metadata.create_all(engine)
+    # One connection per distinct connectionName; the service principal always exists so a
+    # flow can be migrated onto it.
+    connections = {SP_CONNECTION: Connection(name=SP_CONNECTION, connection_type="service_principal", user_id=None)}
+    for fl in ds["flows"]:
+        ref = fl["raw_definition_json"]["properties"]["connectionReferences"]["shared_sharepointonline"]
+        if fl["connection_type"] == "user":
+            connections.setdefault(ref["connectionName"], Connection(
+                name=ref["connectionName"], connection_type="user", user_id=fl["owner_user_id"]))
     with Session(engine) as s:
         s.add_all(User(**{k: u[k] for k in ("id", "display_name", "email", "department", "job_title", "is_active")})
                   for u in ds["users"])
         s.add_all(File(**{k: f[k] for k in ("id", "site_name", "file_name", "file_path",
                                             "sensitivity_label", "is_copilot_indexed")}) for f in ds["files"])
         s.flush()
-        s.add_all(Permission(**permission_row(p["graph"], p["file_id"], p["last_accessed_at"])) for p in ds["permissions"])
+        s.add_all(Permission(**permission_row(p["graph"], p["file_id"], p["last_accessed_at"]), graph_json=p["graph"])
+                  for p in ds["permissions"])
         s.add_all(Flow(**fl) for fl in ds["flows"])
+        s.add_all(connections.values())
         s.commit()
+
+
+def seed_database(db_path: Path | str = TENANT_DB_PATH, truth_path: Path | str = GROUND_TRUTH_PATH) -> dict:
+    """Reseed the simulator database at `db_path` and write the ground truth next to it."""
+    ds = build_dataset()
+    engine = make_engine(db_path)
+    write_tenant_data(engine, ds)
+    engine.dispose()
     Path(truth_path).write_text(json.dumps(ds["ground_truth"], indent=2), encoding="utf-8")
     return ds["ground_truth"]
 

@@ -71,14 +71,10 @@ class UserFacts:
 
 @dataclass
 class FlowFacts:
-    """One Power Automate flow, with its connection resolved to an identity."""
+    """One Power Automate flow resource as served. flow_mapper.parse_flow works out its identity and files."""
     id: str
     flow_name: str
-    owner_user_id: str | None        # properties.creator
-    target_file_id: str | None       # first file a SharePoint action resolves to
-    connection_type: str             # user | service_principal
-    connection_user_id: str | None   # identity the SharePoint connection runs as; None for a service principal
-    is_critical: bool
+    is_critical: bool                # simulatorAnnotations.isBusinessCritical (no Power Automate source)
     raw_definition_json: dict
 
 
@@ -165,6 +161,7 @@ class TenantSnapshot:
     permissions: list[PermissionFacts]
     flows: list[FlowFacts]
     users: dict[str, UserFacts]
+    connections: dict[str, dict] = field(default_factory=dict)  # connectionName -> connection resource
 
     @property
     def permissions_by_file(self) -> dict[str, list[PermissionFacts]]:
@@ -183,29 +180,10 @@ def load_users(adapter: TenantAdapter) -> dict[str, UserFacts]:
             for u in adapter.list_users()}
 
 
-def _first_file_id(node, files_by_path: dict[str, str]) -> str | None:
-    """Depth-first search of a flow definition for the first `path` parameter naming a known file."""
-    if isinstance(node, dict):
-        path = node.get("path")
-        if isinstance(path, str) and path in files_by_path:
-            return files_by_path[path]
-        node = list(node.values())
-    if isinstance(node, list):
-        return next((hit for child in node if (hit := _first_file_id(child, files_by_path))), None)
-    return None
-
-
-def _flow_facts(resource: dict, connections: dict[str, dict], files_by_path: dict[str, str]) -> FlowFacts:
+def _flow_facts(resource: dict) -> FlowFacts:
     props = resource.get("properties") or {}
-    ref = next((r for k, r in (props.get("connectionReferences") or {}).items()
-                if "shared_sharepointonline" in k or "shared_sharepointonline" in str(r.get("id", ""))), {})
-    conn = (connections.get(ref.get("connectionName")) or {}).get("properties") or {}
-    user_id = (conn.get("authenticatedUser") or {}).get("id")
     return FlowFacts(
         id=resource["name"], flow_name=props.get("displayName", resource["name"]),
-        owner_user_id=(props.get("creator") or {}).get("userId"),
-        target_file_id=_first_file_id(props.get("definition") or {}, files_by_path),
-        connection_type="user" if user_id else "service_principal", connection_user_id=user_id,
         is_critical=bool((resource.get("simulatorAnnotations") or {}).get("isBusinessCritical")),
         raw_definition_json=resource)
 
@@ -218,10 +196,9 @@ def load_snapshot(adapter: TenantAdapter) -> TenantSnapshot:
         last_access = adapter.list_item_activity(file_id)
         perms.extend(PermissionFacts.from_graph(g, file_id, last_access.get(g["id"]))
                      for g in sorted(adapter.list_item_permissions(file_id), key=lambda g: g["id"]))
+    flows = [_flow_facts(r) for r in sorted(adapter.list_flows(), key=lambda r: r["name"])]
     connections = {c["name"]: c for c in adapter.list_connections()}
-    files_by_path = {f.file_path: f.id for f in files.values()}
-    flows = [_flow_facts(r, connections, files_by_path) for r in sorted(adapter.list_flows(), key=lambda r: r["name"])]
-    return TenantSnapshot(files, perms, flows, load_users(adapter))
+    return TenantSnapshot(files, perms, flows, load_users(adapter), connections)
 
 
 def scan_permissions(snapshot: TenantSnapshot, now: datetime) -> list[RiskResult]:

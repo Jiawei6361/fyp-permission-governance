@@ -35,6 +35,8 @@ function deriveKpis(summary: ScanSummary | null, items: AssessmentOut[]): Kpis |
     oversharedPermissions: summary?.overshared_permissions ?? items.filter((a) => a.is_overshared).length,
     criticalFlows: summary?.flows_at_risk ?? flows,
     breakageCriticalPermissions: summary?.by_classification.BREAKAGE_CRITICAL ?? critical.length,
+    unknownDependencyPermissions: summary?.by_classification.UNKNOWN_DEPENDENCY
+      ?? items.filter((a) => a.classification === "UNKNOWN_DEPENDENCY").length,
     safeToRevoke: summary?.by_classification.SAFE_TO_REVOKE
       ?? items.filter((a) => a.classification === "SAFE_TO_REVOKE").length,
   };
@@ -91,7 +93,8 @@ export default function App() {
       await loadAssessments();
       push("success", `Scan ${s.scan_id} complete`,
            `${s.files_scanned} files · ${s.permissions_scanned} permissions · ${s.flagged_for_revocation} flagged ` +
-           `(${s.by_classification.BREAKAGE_CRITICAL} blocked, ${s.by_classification.SAFE_TO_REVOKE} safe to revoke).`);
+           `(${s.by_classification.BREAKAGE_CRITICAL} blocked, ${s.by_classification.UNKNOWN_DEPENDENCY ?? 0} unknown ` +
+           `dependency, ${s.by_classification.SAFE_TO_REVOKE} safe to revoke).`);
     } catch (e) {
       push("error", "Scan failed", (e as Error).message);
     } finally {
@@ -111,9 +114,9 @@ export default function App() {
     push("success", status, `${name}: decision recorded for this scan (no tenant change).`);
   };
 
-  const createPlan = async (assessmentId: number, strategy: Strategy) => {
+  const createPlan = async (assessmentId: number, strategy: Strategy, overrideReason?: string) => {
     try {
-      const plan = await api.createRemediation(assessmentId, strategy);
+      const plan = await api.createRemediation(assessmentId, strategy, overrideReason);
       setPreviewId(null);
       setPlanId(plan.id);
       setPage("remediations");

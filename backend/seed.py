@@ -12,6 +12,14 @@ Planted cases (see ground_truth.json):
     permission (8 direct user grants, 4 of them broad grants on overshared files). 3 of the
     direct ones are also stale by the access log, as a trap for naive "stale => revoke".
   * 2 benign broad grants (organization link on Public files) that must NOT be flagged.
+  * 5 flow path cases (flow-26 to flow-30): 3 flows whose action path is a runtime expression
+    and 2 whose path is URL-encoded twice, as the SharePoint connector stores it. Two of them
+    (flow-27, flow-30) run on a stale-looking direct grant, which brings the workflow-breaking
+    total to 14. `flow_path_cases` in ground_truth.json records the expected result of each.
+
+The `flows` columns `owner_user_id`, `target_file_id` and `connection_type` are simulator
+bookkeeping (who the flow runs as and which file it really touches). They are never served
+by the adapter, so the engine cannot read them.
 """
 from __future__ import annotations
 
@@ -20,6 +28,7 @@ import itertools
 import json
 import random
 import sys
+from urllib.parse import quote
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -127,8 +136,14 @@ def _everyone_perm(pid: str, role: str) -> dict:
 
 
 # ---------------------------------------------------------------- flow definition builder
+def double_encode(path: str) -> str:
+    """How the SharePoint connector stores a path parameter: URL-encoded twice."""
+    return quote(quote(path, safe=""), safe="")
+
+
 def _flow_resource(flow_id: str, display: str, state: str, owner: dict, conn_type: str,
-                   file: dict, required: str) -> dict:
+                   file: dict, required: str, path: str | None = None) -> dict:
+    """`path` overrides the action's path parameter (an expression or an encoded path)."""
     slug = owner["email"].split("@")[0].replace(".", "-")
     conn_name = f"shared-sharepointonl-{slug}" if conn_type == "user" else "shared-sp-automation"
     op = "UpdateFile" if required == "write" else "GetFileContentByPath"
@@ -160,7 +175,7 @@ def _flow_resource(flow_id: str, display: str, state: str, owner: dict, conn_typ
                             "host": {"apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
                                      "connectionName": "shared_sharepointonline", "operationId": op},
                             "parameters": {"dataset": f"https://{HOST}/sites/{file['site_name']}",
-                                           "path": file["file_path"]},
+                                           "path": path or file["file_path"]},
                         },
                         "runAfter": {},
                     },
@@ -254,12 +269,14 @@ def build_dataset() -> dict:
     truth = {"overshared_files": [], "stale_safe_to_revoke": [], "workflow_breaking_permissions": [],
              "benign_broad_grants": [], "safe_flows": []}
 
-    def new_flow(file: dict, owner: dict, conn: str, state: str, critical: bool, required: str, verb: str) -> str:
+    def new_flow(file: dict, owner: dict, conn: str, state: str, critical: bool, required: str, verb: str,
+                 path: str | None = None) -> str:
         fid = f"flow-{len(flows) + 1:02d}"
         base = file["file_name"].rsplit(".", 1)[0]
         flows.append({"id": fid, "flow_name": f"{verb} {base}", "owner_user_id": owner["id"],
                       "target_file_id": file["id"], "connection_type": conn, "is_critical": critical,
-                      "raw_definition_json": _flow_resource(fid, f"{verb} {base}", state, owner, conn, file, required)})
+                      "raw_definition_json": _flow_resource(fid, f"{verb} {base}", state, owner, conn, file,
+                                                            required, path)})
         return fid
 
     # ---- planted overshared files (+ 4 broad-grant-dependent flows)
@@ -325,6 +342,86 @@ def build_dataset() -> dict:
         fid = new_flow(f, owner, conn, state, k % 3 == 0, rng.choice(["read", "write"]), "Archive")
         truth["safe_flows"].append(fid)
 
+    # ---- flow path cases (5). Added last so every earlier draw, id and flow number is unchanged.
+    spare = [i for i in rest if i not in safe_t]  # files with baseline permissions only
+
+    def spare_file(site: str) -> dict:
+        return files[spare.pop(next(n for n, i in enumerate(spare) if files[i]["site_name"] == site))]
+
+    def flagged_on(site: str) -> list[str]:
+        """Every permission the scanner flags on a site: overshared, stale-safe, or stale-looking breaking."""
+        site_files = {f["id"] for f in files if f["site_name"] == site}
+        return sorted(
+            [o["permission_id"] for o in truth["overshared_files"] if o["file_id"] in site_files]
+            + [x["permission_id"] for x in truth["stale_safe_to_revoke"] if x["file_id"] in site_files]
+            + [x["permission_id"] for x in truth["workflow_breaking_permissions"]
+               if x["file_id"] in site_files and x["stale_by_access_log"]])
+
+    def outsider_grant(f: dict, role: str, kind: str) -> tuple[dict, dict]:
+        """A stale-looking direct grant to someone outside the department: their only access to the file."""
+        owner = rng.choice([u for u in emp_active if u["department"] != f["dept"]])
+        pid = add(f, {"roles": [role], "grantedToV2": {"user": _user_identity(owner)}}, rng.randint(120, 300))
+        rec = {"permission_id": pid, "file_id": f["id"], "principal_id": owner["id"], "flow_ids": [],
+               "kind": kind, "stale_by_access_log": True}
+        truth["workflow_breaking_permissions"].append(rec)
+        return owner, rec
+
+    cases: list[dict] = []
+
+    def path_case(case: str, f: dict, owner: dict, conn: str, required: str, verb: str, path: str,
+                  critical: bool, expected: str, breaks_if_revoked: list[str]) -> str:
+        fid = new_flow(f, owner, conn, "Started", critical, required, verb, path)
+        dynamic = case == "dynamic_path"
+        cases.append({"flow_id": fid, "case": case, "site_name": f["site_name"], "action": "Process_file",
+                      "action_path": path, "connection_type": conn,
+                      "connection_identity": owner["id"] if conn == "user" else None,
+                      "runtime_file_id": f["id"],  # what the action really touches; the engine is never told
+                      "expected_resolution": "unresolved" if dynamic else "resolved",
+                      "expected_file_id": None if dynamic else f["id"],
+                      "expected_breakage_critical_permission_ids": [] if dynamic else breaks_if_revoked,
+                      "breaks_if_revoked": breaks_if_revoked, "expected_result": expected})
+        return fid
+
+    # (a) dynamic path, run by a department member who reaches the file through the site group
+    f = spare_file("hr")
+    truth["safe_flows"].append(path_case(
+        "dynamic_path", f, dept_members(f["dept"])[0], "user", "read", "Collect",
+        f"/sites/{f['site_name']}/Shared Documents/@{{variables('ReportName')}}", False,
+        "Unresolved. Every flagged permission on the site is UNKNOWN_DEPENDENCY. The flow really runs "
+        "through the inherited site group, so none of them would break it.", []))
+    # (b) dynamic path, run by an outsider whose only access is a stale-looking direct grant
+    f = spare_file("it-infra")
+    owner, rec = outsider_grant(f, "read", "sole_direct_grant_dynamic_path")
+    rec["flow_ids"] = [path_case(
+        "dynamic_path", f, owner, "user", "read", "Export", "@{outputs('Compose_file_path')}", True,
+        "Unresolved. Every flagged permission on the site is UNKNOWN_DEPENDENCY. Revoking the "
+        "stale-looking direct grant really breaks the flow.", [rec["permission_id"]])]
+    # (c) dynamic path on the service principal connection: nothing depends on item permissions
+    f = spare_file("payroll")
+    truth["safe_flows"].append(path_case(
+        "dynamic_path", f, dept_members(f["dept"])[0], "service_principal", "read", "Publish",
+        "@{triggerBody()?['path']}", False,
+        "Unresolved, but the connection is a service principal, so no permission on the site becomes "
+        "UNKNOWN_DEPENDENCY.", []))
+    # (d) double-encoded path, run by a department member
+    f = spare_file("contracts")
+    truth["safe_flows"].append(path_case(
+        "double_encoded_path", f, dept_members(f["dept"])[0], "user", "read", "Index",
+        double_encode(f["file_path"]), False,
+        "Resolved to the file after decoding twice. The department member has access through the site "
+        "group, so nothing is flagged.", []))
+    # (e) double-encoded path, run by an outsider whose only access is a stale-looking direct grant
+    f = spare_file("operations")
+    owner, rec = outsider_grant(f, "write", "sole_direct_grant")
+    rec["flow_ids"] = [path_case(
+        "double_encoded_path", f, owner, "user", "write", "Reconcile", double_encode(f["file_path"]), True,
+        "Resolved to the file after decoding twice. The stale-looking direct grant is BREAKAGE_CRITICAL.",
+        [rec["permission_id"]])]
+    for case in cases:  # filled in last: the outsider grants above are flagged too
+        hold = case["case"] == "dynamic_path" and case["connection_type"] == "user"
+        case["expected_unknown_dependency_permission_ids"] = flagged_on(case["site_name"]) if hold else []
+    truth["flow_path_cases"] = cases
+
     # compute exact days_since_access for the direct stale-looking breaking perms
     by_id = {p["graph"]["id"]: p for p in perms}
     for rec in truth["stale_safe_to_revoke"]:
@@ -337,6 +434,8 @@ def build_dataset() -> dict:
         "workflow_breaking_permissions": len(truth["workflow_breaking_permissions"]),
         "workflow_breaking_flows": sum(len(p["flow_ids"]) for p in truth["workflow_breaking_permissions"]),
         "benign_broad_grants": len(truth["benign_broad_grants"]),
+        "flow_path_cases": len(cases),
+        "unknown_dependency_permissions": sum(len(c["expected_unknown_dependency_permission_ids"]) for c in cases),
     }
     truth["seed"] = SEED
     truth["reference_time"] = NOW.isoformat()

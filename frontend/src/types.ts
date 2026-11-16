@@ -1,6 +1,6 @@
 // Mirrors backend/schemas.py (Milestone 2 API, plus the M3 `inherited_from` field).
 
-export type Classification = "BREAKAGE_CRITICAL" | "SAFE_TO_REVOKE" | "KEEP_REQUIRED";
+export type Classification = "BREAKAGE_CRITICAL" | "UNKNOWN_DEPENDENCY" | "SAFE_TO_REVOKE" | "KEEP_REQUIRED";
 export type ViewRole = "admin" | "manager";
 
 export interface FlowDependency {
@@ -13,6 +13,8 @@ export interface FlowDependency {
   connection_name: string | null;
   is_critical_flow: boolean;
   mitigation: string;
+  /** Set when the action's file could not be worked out (dynamic path, unknown connection). */
+  unresolved_reason: string | null;
 }
 
 export interface ScanSummary {
@@ -28,6 +30,8 @@ export interface ScanSummary {
   flagged_for_revocation: number;
   by_classification: Record<string, number>;
   flows_at_risk: string[];
+  /** Active flows with an action whose file could not be worked out. */
+  flows_unresolved: string[];
 }
 
 export interface AssessmentOut {
@@ -98,6 +102,8 @@ export interface DryRunPreview {
   target: Record<string, string | null>;
   warning: string | null;
   breakage: FlowDependency[];
+  /** Flows that could not be analysed (UNKNOWN_DEPENDENCY). */
+  unresolved: FlowDependency[];
   preconditions: string[];
 }
 
@@ -136,6 +142,8 @@ export interface RemediationPlan {
   risk_score: number;
   dependent_flows: FlowDependency[];
   strategy: Strategy;
+  /** Why the creator went ahead with an UNKNOWN_DEPENDENCY finding. */
+  override_reason: string | null;
   exposed_before: number | null;
   exposed_after: number | null;
   created_by: string;
@@ -179,6 +187,12 @@ export interface BenchmarkResults {
     flows_total: number;
   };
   engines: { baseline: EngineResult; proposed: EngineResult };
+  unknown_dependency_holds?: {
+    permissions_held: number;
+    would_break_a_flow: number;
+    safe_but_held: number;
+    flows_unresolved: string[];
+  };
   workflow_breakage_prevention_rate_pct: number;
 }
 

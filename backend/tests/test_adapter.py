@@ -10,7 +10,7 @@ from sqlalchemy import inspect
 
 from backend import seed
 from backend.adapter import LiveGraphAdapter, SimulatorAdapter, TenantAdapter, TenantError
-from backend.flow_mapper import classify
+from backend.flow_mapper import classify, parse_flow
 from backend.models import make_engine
 from backend.scanner import load_snapshot, scan_permissions
 from backend.seed import SP_CONNECTION
@@ -29,12 +29,14 @@ def _sole_direct(truth) -> dict:
 # ---------------------------------------------------------------- run_flow
 def test_every_flow_succeeds_on_the_seeded_tenant(adapter):
     runs = [adapter.run_flow(f["name"]) for f in adapter.list_flows()]
-    assert len(runs) == 25
+    assert len(runs) == 30
     assert all(r["status"] == "Succeeded" and r["error"] is None for r in runs)
 
 
 def test_deleting_sole_permission_of_flow_owner_makes_run_flow_fail(adapter, truth):
-    for x in truth["workflow_breaking_permissions"]:  # 8 direct grants and 4 broad grants
+    # 10 direct grants and 4 broad grants; flow-27 has a dynamic path and flow-30 a double-encoded one
+    assert len(truth["workflow_breaking_permissions"]) == 14
+    for x in truth["workflow_breaking_permissions"]:
         (flow_id,) = x["flow_ids"]
         assert adapter.run_flow(flow_id)["status"] == "Succeeded"
         adapter.delete_item_permission(x["file_id"], x["permission_id"])
@@ -74,8 +76,8 @@ def test_moving_flow_to_service_principal_survives_revocation(adapter, truth):
     assert adapter.run_flow(flow_id)["status"] == "Succeeded"
     # and the scanner, reading through the adapter, no longer sees a delegated dependency
     snap = load_snapshot(adapter)
-    fl = next(f for f in snap.flows if f.id == flow_id)
-    assert fl.connection_type == "service_principal" and fl.connection_user_id is None
+    prof = parse_flow(next(f for f in snap.flows if f.id == flow_id), snap.connections, {})
+    assert prof.connection_type == "service_principal" and prof.identity_user_id is None
 
 
 # ---------------------------------------------------------------- writes change later reads
@@ -156,12 +158,46 @@ def test_delete_then_re_add_same_grant_restores_checksum(adapter, truth):
 def test_new_simulator_file_seeds_itself_with_the_same_state(adapter, tmp_path):
     fresh = SimulatorAdapter(tmp_path / "fresh.db")
     assert fresh.state_checksum() == adapter.state_checksum()
-    assert len(fresh.list_users()) == 50 and len(fresh.list_files()) == 100 and len(fresh.list_flows()) == 25
+    assert len(fresh.list_users()) == 50 and len(fresh.list_files()) == 100 and len(fresh.list_flows()) == 30
 
 
 # ---------------------------------------------------------------- scan parity and isolation
-def test_scan_through_adapter_matches_classifications_before_the_split(adapter):
-    """golden_classifications.json was captured from the session-based scanner before this change."""
+def test_connections_name_an_identity_and_an_auth_type(adapter):
+    connections = adapter.list_connections()
+    users = {u["id"] for u in adapter.list_users()}
+    assert len(connections) == len({c["name"] for c in connections}) == 23
+    for c in connections:
+        props = c["properties"]
+        if props["authType"] == "oauth":
+            assert props["authenticatedUser"]["id"] in users and "servicePrincipal" not in props
+        else:
+            assert props["authType"] == "servicePrincipal" and c["name"] == SP_CONNECTION
+            assert props["servicePrincipal"]["id"] == seed.SP_APP["id"] and "authenticatedUser" not in props
+    # every flow's connection reference names one of them
+    assert {r["connectionName"] for f in adapter.list_flows()
+            for r in f["properties"]["connectionReferences"].values()} <= {c["name"] for c in connections}
+
+
+def test_run_flow_decodes_double_encoded_paths_and_evaluates_dynamic_ones(adapter, truth):
+    """run_flow is the independent check: it knows what a dynamic path evaluates to, the engine does not."""
+    for c in truth["flow_path_cases"]:
+        assert adapter.run_flow(c["flow_id"])["status"] == "Succeeded"
+        served = json.dumps(adapter.get_flow(c["flow_id"]))
+        assert c["runtime_file_id"] not in served  # the runtime target is not leaked through the flow resource
+        for pid in c["breaks_if_revoked"]:
+            adapter.delete_item_permission(c["runtime_file_id"], pid)
+            run = adapter.run_flow(c["flow_id"])
+            assert run["status"] == "Failed" and run["error"]["status"] == 403
+            assert run["error"]["file_id"] == c["runtime_file_id"]
+
+
+def test_scan_through_adapter_matches_golden_classifications(adapter):
+    """golden_classifications.json is the scan of the seeded tenant.
+
+    It was first captured before the adapter refactor. It was regenerated when the five flow path
+    cases were seeded: the only differences from the original were two new permissions and four
+    SAFE_TO_REVOKE permissions on the hr and it-infra sites becoming UNKNOWN_DEPENDENCY.
+    """
     checksum = adapter.state_checksum()
     snap = load_snapshot(adapter)
     assessed, _ = classify(scan_permissions(snap, seed.NOW), snap)
@@ -177,15 +213,16 @@ def test_api_scan_keeps_tenant_and_app_data_in_separate_files(client, scanned, a
     assert inspect(make_engine(db_path)).get_table_names() == ["assessments", "remediation_plans", "remediation_steps"]
     assert sorted(inspect(make_engine(tenant_db_path)).get_table_names()) == \
         ["connections", "files", "flows", "permissions", "users"]
-    assert client.get("/api/assessments").json()["total"] == 337
+    assert client.get("/api/assessments").json()["total"] == 339
 
 
 def test_rescan_after_a_write_reflects_the_new_tenant_state(client, scanned, adapter, truth):
     x = truth["stale_safe_to_revoke"][0]
     adapter.delete_item_permission(x["file_id"], x["permission_id"])
     second = client.post("/api/scan/run").json()
-    assert second["permissions_scanned"] == 336
-    assert second["by_classification"]["SAFE_TO_REVOKE"] == scanned["by_classification"]["SAFE_TO_REVOKE"] - 1
+    assert second["permissions_scanned"] == 338
+    assert second["flagged_for_revocation"] == scanned["flagged_for_revocation"] - 1
+    assert sum(second["by_classification"].values()) == 338
 
 
 # ---------------------------------------------------------------- adapter contract

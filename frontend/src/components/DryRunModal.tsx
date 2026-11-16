@@ -10,8 +10,8 @@ interface Props {
   status?: ReviewStatus;
   onClose: () => void;
   onConfirm: (id: number) => void;
-  /** Creates a remediation plan (DRAFT) for this finding. Admin view only. */
-  onCreatePlan: (id: number, strategy: Strategy) => Promise<void>;
+  /** Creates a remediation plan (DRAFT) for this finding. Admin view only. UNKNOWN_DEPENDENCY needs a reason. */
+  onCreatePlan: (id: number, strategy: Strategy, overrideReason?: string) => Promise<void>;
 }
 
 const REQUIRED_MITIGATION = "Migrate flow connection to Service Principal first";
@@ -19,6 +19,7 @@ const REQUIRED_MITIGATION = "Migrate flow connection to Service Principal first"
 export function DryRunModal({ assessmentId, fileName, role, status, onClose, onConfirm, onCreatePlan }: Props) {
   const [strategy, setStrategy] = useState<Strategy>("service_principal");
   const [creating, setCreating] = useState(false);
+  const [overrideReason, setOverrideReason] = useState("");
   const [preview, setPreview] = useState<DryRunPreview | null>(null);
   const [error, setError] = useState<string | null>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -27,6 +28,7 @@ export function DryRunModal({ assessmentId, fileName, role, status, onClose, onC
     let live = true;
     setPreview(null);
     setError(null);
+    setOverrideReason("");
     api.dryRun(assessmentId)
       .then((p) => live && setPreview(p))
       .catch((e: Error) => live && setError(e.message));
@@ -81,12 +83,23 @@ export function DryRunModal({ assessmentId, fileName, role, status, onClose, onC
             </button>
           )}
           {preview?.blocked && (
-            <button className="btn-danger" disabled title="Direct deletion is blocked by the breakage guardrail">
+            <button className="btn-danger" disabled
+                    title={preview.classification === "UNKNOWN_DEPENDENCY"
+                      ? "Direct deletion is blocked: a flow on this site could not be analysed"
+                      : "Direct deletion is blocked by the breakage guardrail"}>
               <Icon name="lock" />Deletion blocked
             </button>
           )}
           {preview && role === "admin" && preview.classification !== "KEEP_REQUIRED" && (
             <div className="flex w-full flex-wrap items-center justify-end gap-2 border-t border-slate-200 pt-3">
+              {preview.classification === "UNKNOWN_DEPENDENCY" && (
+                <label className="w-full text-xs font-medium text-slate-700">
+                  Override reason (required): why is it acceptable to remove this access although a flow could not be analysed?
+                  <textarea className="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-800"
+                            rows={2} value={overrideReason} onChange={(e) => setOverrideReason(e.target.value)}
+                            placeholder="e.g. Flow owner confirmed the flow only reads the Leave folder" />
+                </label>
+              )}
               {preview.breakage.length > 0 && (
                 <label className="flex items-center gap-2 text-xs text-slate-600">
                   Protect flows by
@@ -97,13 +110,16 @@ export function DryRunModal({ assessmentId, fileName, role, status, onClose, onC
                   </select>
                 </label>
               )}
-              <button className="btn-primary" disabled={creating}
+              <button className="btn-primary"
+                      disabled={creating || (preview.classification === "UNKNOWN_DEPENDENCY" && !overrideReason.trim())}
                       onClick={() => {
                         setCreating(true);
-                        void onCreatePlan(preview.assessment_id, strategy).finally(() => setCreating(false));
+                        void onCreatePlan(preview.assessment_id, strategy,
+                                          preview.classification === "UNKNOWN_DEPENDENCY" ? overrideReason.trim() : undefined)
+                          .finally(() => setCreating(false));
                       }}>
                 {creating ? <Spinner /> : <Icon name="shield" />}
-                Create remediation plan
+                {preview.classification === "UNKNOWN_DEPENDENCY" ? "Create plan with override" : "Create remediation plan"}
               </button>
             </div>
           )}
@@ -176,6 +192,55 @@ function PreviewBody({ p, role }: { p: DryRunPreview; role: ViewRole }) {
                   <ul className="mt-2 list-disc pl-5 text-xs text-red-50">
                     {p.preconditions.map((c) => <li key={c}>{c}</li>)}
                   </ul>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {p.classification === "UNKNOWN_DEPENDENCY" && (
+        <div role="alert" className="rounded-xl border-2 border-amber-500 bg-amber-50 p-4">
+          <div className="flex items-start gap-3">
+            <Icon name="alert" className="mt-0.5 h-6 w-6 shrink-0 text-amber-600" />
+            <div className="min-w-0 space-y-3">
+              <div>
+                <p className="text-base font-bold text-amber-900">Unknown dependency: revocation blocked</p>
+                <p className="mt-1 text-sm text-amber-900">
+                  {role === "admin"
+                    ? "We could not work out which files the following active workflow on this site touches, so it may or may not need this permission:"
+                    : "An automated workflow on this site picks its file while it runs, so we cannot tell whether it needs this access:"}
+                </p>
+              </div>
+              <ul className="space-y-2">
+                {p.unresolved.map((d) => (
+                  <li key={d.flow_id + d.action_name} className="rounded-lg bg-white p-3 ring-1 ring-amber-200">
+                    <p className="text-sm font-semibold text-slate-900">
+                      <span className="font-mono text-amber-700">{d.flow_id}</span> · {d.flow_name}
+                    </p>
+                    {role === "admin" && (
+                      <p className="mt-0.5 font-mono text-xs text-slate-600">
+                        action {d.action_name} ({d.operation_id}) · runs as {d.connection_identity} · {d.unresolved_reason}
+                      </p>
+                    )}
+                  </li>
+                ))}
+              </ul>
+              {p.breakage.length > 0 && (
+                <p className="text-sm font-semibold text-red-800">
+                  It would also break: {p.breakage.map((d) => `${d.flow_name} (${d.flow_id})`).join(", ")}.
+                </p>
+              )}
+              <div className="rounded-lg bg-amber-600 p-3 text-white">
+                <p className="text-xs font-semibold uppercase tracking-wide text-amber-100">Before removing this access</p>
+                <p className="mt-0.5 text-sm font-semibold">
+                  Check the workflow's run history or ask its owner which files it uses.
+                </p>
+                {role === "admin" && (
+                  <p className="mt-1 text-xs text-amber-50">
+                    A remediation plan needs an override reason. It runs the workflow before and after removing the
+                    permission and puts the permission back if the workflow fails.
+                  </p>
                 )}
               </div>
             </div>

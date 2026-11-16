@@ -1,7 +1,10 @@
 """Milestone 2: scanner, flow dependency detector, assessment API, dry-run safety, benchmark."""
 from __future__ import annotations
 
+import copy
+import json
 from datetime import datetime, timedelta
+from urllib.parse import quote
 
 import pytest
 from sqlalchemy import func, inspect, select
@@ -9,13 +12,15 @@ from sqlalchemy.orm import Session
 
 from backend import seed
 from backend.evaluate_benchmark import evaluate
-from backend.flow_mapper import MITIGATION, classify, parse_flow
+from backend.flow_mapper import MITIGATION, UNKNOWN_MITIGATION, classify, decode_path, parse_flow
 from backend.models import Assessment, Permission, User, init_db, make_engine
-from backend.scanner import (WEIGHTS, FileFacts, PermissionFacts, load_snapshot, scan_permissions,
+from backend.scanner import (WEIGHTS, FileFacts, FlowFacts, PermissionFacts, load_snapshot, scan_permissions,
                      score_permission)
 
 NOW = seed.NOW
-CRITICAL_FLOWS = [f"flow-{i:02d}" for i in range(1, 8)]
+CRITICAL_FLOWS = [f"flow-{i:02d}" for i in range(1, 8)] + ["flow-30"]  # flows behind BREAKAGE_CRITICAL
+UNRESOLVED_FLOWS = ["flow-26", "flow-27"]  # active delegated flows with a dynamic path
+BY_CLASSIFICATION = {"BREAKAGE_CRITICAL": 8, "UNKNOWN_DEPENDENCY": 5, "SAFE_TO_REVOKE": 19, "KEEP_REQUIRED": 307}
 
 
 def _ids(items, classification=None):
@@ -91,12 +96,14 @@ def test_classification_matches_ground_truth(engine_output, truth):
     by_cls: dict[str, set[str]] = {}
     for a in assessed:
         by_cls.setdefault(a.classification, set()).add(a.risk.permission.permission_id)
+    unknown = {pid for c in truth["flow_path_cases"] for pid in c["expected_unknown_dependency_permission_ids"]}
+    assert by_cls["UNKNOWN_DEPENDENCY"] == unknown and len(unknown) == 5
     safe = ({o["permission_id"] for o in truth["overshared_files"] if o["expected_action"] == "remove"}
             | {x["permission_id"] for x in truth["stale_safe_to_revoke"]})
-    assert by_cls["SAFE_TO_REVOKE"] == safe
+    assert by_cls["SAFE_TO_REVOKE"] == safe - unknown and len(safe - unknown) == 19
     breaking_flagged = {x["permission_id"] for x in truth["workflow_breaking_permissions"]
-                        if x["kind"] == "sole_broad_grant" or x["stale_by_access_log"]}
-    assert by_cls["BREAKAGE_CRITICAL"] == breaking_flagged and len(breaking_flagged) == 7
+                        if x["kind"] == "sole_broad_grant" or x["stale_by_access_log"]} - unknown
+    assert by_cls["BREAKAGE_CRITICAL"] == breaking_flagged and len(breaking_flagged) == 8
     # the 5 active (non-stale) sole direct grants are kept and annotated with their flow
     kept = {a.risk.permission.permission_id: a for a in assessed if a.classification == "KEEP_REQUIRED"}
     for x in truth["workflow_breaking_permissions"]:
@@ -117,29 +124,144 @@ def test_breakage_dependencies_carry_flow_action_and_mitigation(engine_output, t
         assert a.mitigation == MITIGATION
 
 
-def test_flow_parser_resolves_action_paths_and_identity(engine_output):
+def test_flow_parser_resolves_action_paths_and_identity(engine_output, truth):
     snap, _, _, profiles = engine_output
-    assert len(profiles) == 25
-    for prof, fl in zip(profiles, snap.flows):
-        assert [a.file_id for a in prof.actions] == [fl.target_file_id]
-        assert prof.identity_user_id == (fl.owner_user_id if fl.connection_type == "user" else None)
+    by_id = {p.flow_id: p for p in profiles}
+    dynamic = {c["flow_id"] for c in truth["flow_path_cases"] if c["case"] == "dynamic_path"}
+    assert len(profiles) == 30 and len(dynamic) == 3
+    for prof in profiles:
+        (action,) = prof.actions
+        assert action.is_resolved == (prof.flow_id not in dynamic)
+        assert action.site_name == (snap.files[action.file_id].site_name if action.is_resolved else action.site_name)
+        assert prof.connection_type in ("user", "service_principal")
+        assert (prof.identity_user_id in snap.users) == (prof.connection_type == "user")
+    # the identity is whoever the flow's connection is signed in as: the grantee of its sole direct grant
+    for x in truth["workflow_breaking_permissions"]:
+        if x["kind"].startswith("sole_direct_grant"):
+            assert by_id[x["flow_ids"][0]].identity_user_id == x["principal_id"]
+    assert sum(p.connection_type == "service_principal" for p in profiles) == 3
+
+
+def test_engine_facts_carry_no_seed_only_columns(engine_output):
+    snap, _, _, _ = engine_output
+    assert set(FlowFacts.__dataclass_fields__) == {"id", "flow_name", "is_critical", "raw_definition_json"}
+    for fl in snap.flows:  # the served flow resource does not leak the simulator's bookkeeping either
+        assert not {"owner_user_id", "target_file_id", "connection_type"} & set(json.dumps(fl.raw_definition_json).split('"'))
+
+
+def test_flow_path_cases_match_ground_truth(engine_output, truth):
+    _, _, assessed, profiles = engine_output
+    by_id = {p.flow_id: p for p in profiles}
+    cls = {a.risk.permission.permission_id: a for a in assessed}
+    cases = truth["flow_path_cases"]
+    assert [c["case"] for c in cases] == ["dynamic_path"] * 3 + ["double_encoded_path"] * 2
+    for c in cases:
+        prof = by_id[c["flow_id"]]
+        (action,) = prof.actions
+        assert action.file_id == c["expected_file_id"] and action.site_name == c["site_name"]
+        assert prof.connection_type == c["connection_type"] and prof.identity_user_id == c["connection_identity"]
+        if c["expected_resolution"] == "unresolved":
+            assert "expression" in action.unresolved_reason
+        else:
+            assert action.unresolved_reason is None and "%" in c["action_path"] and "%" not in action.file_path
+        for pid in c["expected_unknown_dependency_permission_ids"]:
+            a = cls[pid]
+            assert a.classification == "UNKNOWN_DEPENDENCY" and a.mitigation == UNKNOWN_MITIGATION
+            assert [(d.flow_id, d.action_name) for d in a.dependencies] == [(c["flow_id"], "Process_file")]
+            assert all(d.unresolved_reason and d.mitigation == UNKNOWN_MITIGATION for d in a.dependencies)
+        for pid in c["expected_breakage_critical_permission_ids"]:
+            assert cls[pid].classification == "BREAKAGE_CRITICAL"
+            assert [d.flow_id for d in cls[pid].dependencies] == [c["flow_id"]]
+    # the service principal case is unresolved too, yet holds nothing back on its site
+    sp = next(c for c in cases if c["connection_type"] == "service_principal")
+    on_site = [a for a in assessed if a.risk.file.site_name == sp["site_name"] and a.risk.flagged]
+    assert on_site and not any(a.classification == "UNKNOWN_DEPENDENCY" for a in on_site)
+    # the planted truth: the engine holds the one grant that would really break the dynamic flow
+    really_breaks = {pid for c in cases if c["case"] == "dynamic_path" for pid in c["breaks_if_revoked"]}
+    assert len(really_breaks) == 1 and all(cls[pid].classification == "UNKNOWN_DEPENDENCY" for pid in really_breaks)
+
+
+def _one_action_flow(snap, **params):
+    """A copy of the first seeded flow with its action parameters replaced."""
+    fl = snap.flows[0]
+    raw = copy.deepcopy(fl.raw_definition_json)
+    action = raw["properties"]["definition"]["actions"]["Process_file"]
+    action["inputs"]["parameters"] = params
+    return FlowFacts(fl.id, fl.flow_name, fl.is_critical, raw), action
 
 
 def test_flow_parser_handles_nested_actions_and_dollar_connections(engine_output):
     snap, _, _, _ = engine_output
-    fl = snap.flows[0]
-    raw = fl.raw_definition_json
-    props = dict(raw["properties"])
-    action = props["definition"]["actions"]["Process_file"]
+    files_by_path = {f.file_path: f.id for f in snap.files.values()}
+    original = parse_flow(snap.flows[0], snap.connections, files_by_path)
+    fl, action = _one_action_flow(snap, **snap.flows[0].raw_definition_json["properties"]["definition"]["actions"]
+                                  ["Process_file"]["inputs"]["parameters"])
+    props = fl.raw_definition_json["properties"]
     props["connectionReferences"] = {}
-    props["definition"] = {**props["definition"],
-                           "parameters": {"$connections": {"value": {"shared_sharepointonline": {
-                               "connectionName": "c1", "id": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"}}}},
-                           "actions": {"Scope": {"type": "Scope", "actions": {"Nested_read": action}}}}
-    fl.raw_definition_json = {**raw, "properties": props}
-    prof = parse_flow(fl, {f.file_path: f.id for f in snap.files.values()})
-    assert [(a.action_name, a.file_id) for a in prof.actions] == [("Nested_read", fl.target_file_id)]
-    assert prof.connection_name == "c1"
+    props["definition"]["parameters"] = {"$connections": {"value": {"shared_sharepointonline": {
+        "connectionName": "c1", "id": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"}}}}
+    props["definition"]["actions"] = {"Scope": {"type": "Scope", "actions": {"Nested_read": action}}}
+    connections = {"c1": {"name": "c1", "properties": {"authenticatedUser": {"id": "u-001"}}}}
+    prof = parse_flow(fl, connections, files_by_path)
+    assert [(a.action_name, a.file_id) for a in prof.actions] == [("Nested_read", original.actions[0].file_id)]
+    assert (prof.connection_name, prof.connection_type, prof.identity_user_id) == ("c1", "user", "u-001")
+    # the identity comes from the connection resource and from nowhere else
+    sp = parse_flow(fl, {"c1": {"name": "c1", "properties": {"servicePrincipal": {"id": "app-1"}}}}, files_by_path)
+    assert (sp.connection_type, sp.identity_user_id) == ("service_principal", None)
+    missing = parse_flow(fl, {}, files_by_path)
+    assert (missing.connection_type, missing.identity_user_id) == ("unknown", None)
+
+
+@pytest.mark.parametrize("encode,resolved", [
+    (lambda p: p, True),
+    (lambda p: quote(p, safe=""), True),
+    (seed.double_encode, True),
+    (lambda p: quote(seed.double_encode(p), safe=""), False),  # three times is not a connector format
+])
+def test_action_paths_are_url_decoded_twice(engine_output, encode, resolved):
+    snap, _, _, _ = engine_output
+    files_by_path = {f.file_path: f.id for f in snap.files.values()}
+    path = next(p for p in files_by_path if " " in p)
+    fl, _ = _one_action_flow(snap, dataset="https://lumira.sharepoint.example/sites/x", path=encode(path))
+    (action,) = parse_flow(fl, snap.connections, files_by_path).actions
+    assert action.is_resolved == resolved and (action.file_id == files_by_path[path]) == resolved
+    assert decode_path(seed.double_encode(path)) == path
+
+
+@pytest.mark.parametrize("params,reason", [
+    ({"dataset": "https://lumira.sharepoint.example/sites/finance"}, "no file path"),
+    ({"dataset": "https://lumira.sharepoint.example/sites/finance", "path": "@{triggerBody()?['path']}"}, "expression"),
+    ({"dataset": "https://lumira.sharepoint.example/sites/finance", "path": "@variables('p')"}, "expression"),
+    ({"dataset": "https://lumira.sharepoint.example/sites/finance",
+      "path": "%252Fsites%252Ffinance%252F%2540%257Bvariables('f')%257D"}, "expression"),  # encoded @{...}
+    ({"dataset": "https://lumira.sharepoint.example/sites/finance", "path": "/sites/finance/gone.xlsx"}, "does not match"),
+])
+def test_unresolvable_action_is_recorded_as_unresolved_never_guessed(engine_output, params, reason):
+    snap, results, _, _ = engine_output
+    fl, _ = _one_action_flow(snap, **params)
+    (action,) = parse_flow(fl, snap.connections, {f.file_path: f.id for f in snap.files.values()}).actions
+    assert action.file_id is None and reason in action.unresolved_reason and action.site_name == "finance"
+    # in a scan, that flow turns every flagged permission on its site into UNKNOWN_DEPENDENCY,
+    # including the ones with a proven dependency (their known flows stay listed first)
+    snap.flows[0] = fl
+    assessed, _ = classify(results, snap)
+    flagged = [a for a in assessed if a.risk.flagged and a.risk.file.site_name == "finance"]
+    assert flagged and all(a.classification == "UNKNOWN_DEPENDENCY" for a in flagged)
+    assert all(a.dependencies[-1].flow_id == fl.id and a.dependencies[-1].unresolved_reason for a in flagged)
+    assert any(d.unresolved_reason is None for a in flagged for d in a.dependencies)
+    assert not any(a.classification == "UNKNOWN_DEPENDENCY" for a in assessed
+                   if not a.risk.flagged or a.risk.file.site_name not in ("finance", "hr", "it-infra"))
+
+
+def test_flow_on_a_missing_connection_is_an_unknown_dependency(engine_output):
+    snap, results, _, _ = engine_output
+    prof = parse_flow(snap.flows[0], snap.connections, {f.file_path: f.id for f in snap.files.values()})
+    del snap.connections[prof.connection_name]
+    site = prof.actions[0].site_name
+    assessed, _ = classify(results, snap)
+    flagged = [a for a in assessed if a.risk.flagged and a.risk.file.site_name == site]
+    assert flagged and all(a.classification == "UNKNOWN_DEPENDENCY" for a in flagged)
+    assert any("identity could not be resolved" in d.unresolved_reason for d in flagged[0].dependencies)
 
 
 def test_scanning_graph_payloads_equals_scanning_db_rows(engine_output, tenant_db_path):
@@ -161,20 +283,21 @@ def test_init_db_creates_only_app_tables_and_leaves_tenant_untouched(tmp_path, t
     assert inspect(make_engine(app_db)).get_table_names() == ["assessments", "remediation_plans", "remediation_steps"]
     assert "assessments" not in inspect(make_engine(tenant_db_path)).get_table_names()
     with Session(make_engine(tenant_db_path)) as s:
-        assert s.scalar(select(func.count()).select_from(Permission)) == 337
+        assert s.scalar(select(func.count()).select_from(Permission)) == 339
         assert s.scalar(select(func.count()).select_from(User)) == 50
 
 
 # ---------------------------------------------------------------- API
 def test_scan_run_summary(scanned):
     assert scanned["files_scanned"] == 100
-    assert scanned["permissions_scanned"] == 337
-    assert scanned["flows_analysed"] == 25
+    assert scanned["permissions_scanned"] == 339
+    assert scanned["flows_analysed"] == 30
     assert scanned["overshared_permissions"] == 12 and scanned["overshared_files"] == 12
-    assert scanned["stale_permissions"] == 18
-    assert scanned["flagged_for_revocation"] == 30
-    assert scanned["by_classification"] == {"BREAKAGE_CRITICAL": 7, "SAFE_TO_REVOKE": 23, "KEEP_REQUIRED": 307}
+    assert scanned["stale_permissions"] == 20
+    assert scanned["flagged_for_revocation"] == 32
+    assert scanned["by_classification"] == BY_CLASSIFICATION
     assert scanned["flows_at_risk"] == CRITICAL_FLOWS
+    assert scanned["flows_unresolved"] == UNRESOLVED_FLOWS
 
 
 def test_assessments_before_any_scan_is_404(client):
@@ -185,19 +308,23 @@ def test_assessments_filter_by_classification(client, scanned, truth):
     r = client.get("/api/assessments", params={"classification": "BREAKAGE_CRITICAL"})
     assert r.status_code == 200
     body = r.json()
-    assert body["scan_id"] == scanned["scan_id"] and body["total"] == 7
+    assert body["scan_id"] == scanned["scan_id"] and body["total"] == 8
     assert all(i["classification"] == "BREAKAGE_CRITICAL" and i["dependent_flows"] for i in body["items"])
     dep = body["items"][0]["dependent_flows"][0]
     assert {"flow_id", "flow_name", "action_name", "mitigation"} <= dep.keys()
 
     safe = client.get("/api/assessments", params={"classification": "SAFE_TO_REVOKE"}).json()
-    assert safe["total"] == 23
+    assert safe["total"] == 19
     assert all(i["is_overshared"] or i["is_stale"] for i in safe["items"])
     assert all(not i["dependent_flows"] for i in safe["items"])
     scores = [i["risk_score"] for i in safe["items"]]
     assert scores == sorted(scores, reverse=True)
 
-    assert client.get("/api/assessments").json()["total"] == 337
+    assert client.get("/api/assessments").json()["total"] == 339
+    unknown = client.get("/api/assessments", params={"classification": "UNKNOWN_DEPENDENCY"}).json()
+    assert unknown["total"] == 5
+    assert all(i["mitigation"] == UNKNOWN_MITIGATION and i["dependent_flows"][0]["unresolved_reason"]
+               for i in unknown["items"])
 
 
 def test_assessments_rejects_unknown_filters(client, scanned):
@@ -208,7 +335,7 @@ def test_assessments_rejects_unknown_filters(client, scanned):
 
 def test_manager_view_returns_plain_language_cards(client, scanned):
     body = client.get("/api/assessments", params={"role": "manager", "classification": "BREAKAGE_CRITICAL"}).json()
-    assert body["role"] == "manager" and body["total"] == 7
+    assert body["role"] == "manager" and body["total"] == 8
     for card in body["items"]:
         assert {"headline", "what_we_found", "why_it_matters", "recommended_action", "risk_level"} <= card.keys()
         assert "permission_id" not in card and "score_breakdown" not in card
@@ -218,6 +345,10 @@ def test_manager_view_returns_plain_language_cards(client, scanned):
     assert all(c["safe_to_fix_now"] and "nothing will break" in c["recommended_action"] for c in safe["items"])
     anon = [c for c in safe["items"] if "without signing in" in c["headline"]]
     assert len(anon) == 3 and all(c["risk_level"] == "High" for c in anon)
+    unknown = client.get("/api/assessments", params={"role": "manager", "classification": "UNKNOWN_DEPENDENCY"}).json()
+    assert unknown["total"] == 5
+    for card in unknown["items"]:
+        assert card["safe_to_fix_now"] is False and "cannot tell whether it needs this access" in card["recommended_action"]
 
 
 def test_get_single_assessment(client, scanned):
@@ -256,8 +387,27 @@ def test_dry_run_breakage_critical_is_blocked_with_warning(client, scanned, tena
         assert p["warning"].startswith("BLOCKED")
         for d in item["dependent_flows"]:
             assert d["flow_id"] in p["warning"] and d["flow_name"] in p["warning"]
-        assert p["breakage"] == item["dependent_flows"]
+        assert p["breakage"] == item["dependent_flows"] and p["unresolved"] == []
         assert p["preconditions"] and all(MITIGATION in pre for pre in p["preconditions"])
+    assert _permission_state(tenant_db_path) == before
+
+
+def test_dry_run_unknown_dependency_is_blocked_with_its_own_warning(client, scanned, tenant_db_path):
+    before = _permission_state(tenant_db_path)
+    critical = client.get("/api/assessments", params={"classification": "BREAKAGE_CRITICAL"}).json()["items"][0]
+    critical_warning = client.post(f"/api/assessments/{critical['id']}/dry-run").json()["warning"]
+    items = client.get("/api/assessments", params={"classification": "UNKNOWN_DEPENDENCY"}).json()["items"]
+    assert len(items) == 5
+    for item in items:
+        p = client.post(f"/api/assessments/{item['id']}/dry-run").json()
+        assert p["classification"] == "UNKNOWN_DEPENDENCY" and p["blocked"] is True and p["executed"] is False
+        assert p["warning"].startswith("BLOCKED: unknown flow dependency")
+        assert "would break" not in p["warning"] and "would break" in critical_warning
+        assert "override reason" in p["warning"] and item["site_name"] in p["warning"]
+        for d in item["dependent_flows"]:
+            assert d["flow_id"] in p["warning"] and d["unresolved_reason"] in p["warning"]
+        assert p["unresolved"] == item["dependent_flows"] and p["breakage"] == []
+        assert p["preconditions"] and all(UNKNOWN_MITIGATION in pre for pre in p["preconditions"])
     assert _permission_state(tenant_db_path) == before
 
 
@@ -273,9 +423,9 @@ def test_rescan_keeps_previous_snapshot(client, scanned, db_path):
     assert second["scan_id"] != scanned["scan_id"]
     assert client.get("/api/assessments").json()["scan_id"] == second["scan_id"]
     old = client.get("/api/assessments", params={"scan_id": scanned["scan_id"]}).json()
-    assert old["total"] == 337
+    assert old["total"] == 339
     with Session(make_engine(db_path)) as s:
-        assert s.scalar(select(func.count()).select_from(Assessment)) == 2 * 337
+        assert s.scalar(select(func.count()).select_from(Assessment)) == 2 * 339
 
 
 def test_scoring_config_endpoint(client):
@@ -289,10 +439,17 @@ def test_benchmark_proposed_beats_baseline(tenant_db_path, tmp_path):
     seed.seed_database(tenant_db_path, truth_path)
     res = evaluate(tenant_db_path, truth_path)
     base, ours = res["engines"]["baseline"], res["engines"]["proposed"]
-    assert base["revocation_recommendation"] == {"tp": 23, "fp": 7, "fn": 0, "precision": 0.7667,
-                                                 "recall": 1.0, "f1": 0.8679}
-    assert ours["revocation_recommendation"] == {"tp": 23, "fp": 0, "fn": 0, "precision": 1.0,
-                                                 "recall": 1.0, "f1": 1.0}
-    assert ours["flow_dependency_detection"]["f1"] == 1.0 and base["flow_dependency_detection"]["recall"] == 0.0
-    assert base["flows_broken_if_executed"] == CRITICAL_FLOWS and ours["flows_broken_if_executed"] == []
+    assert base["revocation_recommendation"] == {"tp": 23, "fp": 9, "fn": 0, "precision": 0.7188,
+                                                 "recall": 1.0, "f1": 0.8364}
+    # never wrong, but the 4 safe permissions held back as UNKNOWN_DEPENDENCY cost recall
+    assert ours["revocation_recommendation"] == {"tp": 19, "fp": 0, "fn": 4, "precision": 1.0,
+                                                 "recall": 0.8261, "f1": 0.9048}
+    # 13 of 14 proven; the 14th sits behind a dynamic path and is held, not detected
+    assert ours["flow_dependency_detection"] == {"tp": 13, "fp": 0, "fn": 1, "precision": 1.0,
+                                                 "recall": 0.9286, "f1": 0.963}
+    assert base["flow_dependency_detection"]["recall"] == 0.0
+    assert base["flows_broken_if_executed"] == sorted(CRITICAL_FLOWS + ["flow-27"])
+    assert ours["flows_broken_if_executed"] == []
+    assert res["unknown_dependency_holds"] == {"permissions_held": 5, "would_break_a_flow": 1, "safe_but_held": 4,
+                                               "flows_unresolved": UNRESOLVED_FLOWS}
     assert res["workflow_breakage_prevention_rate_pct"] == 100.0

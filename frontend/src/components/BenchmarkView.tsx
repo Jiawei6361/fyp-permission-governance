@@ -83,6 +83,11 @@ export function BenchmarkView() {
           <p className="mt-1 text-xs text-slate-500">
             Baseline would break {baseline.flows_broken_if_executed.length} flows
             ({baseline.critical_flows_broken_if_executed.length} business-critical); proposed breaks {proposed.flows_broken_if_executed.length}.
+            {data.unknown_dependency_holds && (
+              <> {data.unknown_dependency_holds.permissions_held} permissions are held as UNKNOWN_DEPENDENCY
+                ({data.unknown_dependency_holds.would_break_a_flow} would really break a flow,
+                {" "}{data.unknown_dependency_holds.safe_but_held} were safe).</>
+            )}
           </p>
         </div>
         <div className="card p-5">

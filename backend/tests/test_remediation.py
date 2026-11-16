@@ -2,8 +2,10 @@
 from __future__ import annotations
 
 import pytest
+from sqlalchemy import inspect, text
 
 from backend.adapter import TenantError
+from backend.models import init_db, make_engine
 from backend.remediation import STEP_ORDER
 from backend.seed import SP_APP, SP_CONNECTION
 
@@ -16,9 +18,9 @@ def _finding(client, classification, **match):
     return next(i for i in items if all(i[k] == v for k, v in match.items()))
 
 
-def _approved_plan(client, assessment, strategy="service_principal"):
+def _approved_plan(client, assessment, strategy="service_principal", override_reason=None):
     r = client.post("/api/remediations", json={"assessment_id": assessment["id"], "strategy": strategy,
-                                               "created_by": "alice"})
+                                               "created_by": "alice", "override_reason": override_reason})
     assert r.status_code == 201, r.text
     plan = r.json()
     assert plan["state"] == "DRAFT" and [s["status"] for s in plan["steps"]] == ["PENDING"] * 5
@@ -83,7 +85,7 @@ def test_breakage_critical_plan_completes_and_flow_still_runs(client, scanned, a
     # a new scan no longer reports the flow as at risk from this file
     rescan = client.post("/api/scan/run").json()
     assert not set(flow_ids) & set(rescan["flows_at_risk"])
-    assert rescan["by_classification"]["BREAKAGE_CRITICAL"] == 6
+    assert rescan["by_classification"]["BREAKAGE_CRITICAL"] == 7
 
 
 def test_safe_to_revoke_plan_completes_without_touching_flows(client, scanned, adapter):
@@ -228,6 +230,62 @@ def test_create_plan_validation(client, scanned):
     assert client.post("/api/remediations", json={"assessment_id": a["id"]}).status_code == 201  # closed plans do not block
     assert client.get("/api/remediations/999999").status_code == 404
     assert client.post("/api/remediations/999999/execute").status_code == 404
+
+
+# ---------------------------------------------------------------- UNKNOWN_DEPENDENCY needs an override
+def test_unknown_dependency_plan_requires_an_override_reason(client, scanned, adapter):
+    a = _finding(client, "UNKNOWN_DEPENDENCY")
+    before = adapter.state_checksum()
+    for body in ({}, {"override_reason": None}, {"override_reason": ""}, {"override_reason": "   "}):
+        r = client.post("/api/remediations", json={"assessment_id": a["id"], **body})
+        assert r.status_code == 422 and "override_reason" in r.json()["detail"]
+    assert client.get("/api/remediations").json()["total"] == 0
+    r = client.post("/api/remediations", json={"assessment_id": a["id"], "override_reason": "  owner confirmed  "})
+    assert r.status_code == 201 and r.json()["override_reason"] == "owner confirmed"
+    assert client.get(f"/api/remediations/{r.json()['id']}").json()["override_reason"] == "owner confirmed"
+    assert adapter.state_checksum() == before
+    # the other classifications do not need one
+    plan = client.post("/api/remediations", json={"assessment_id": _finding(client, "SAFE_TO_REVOKE")["id"]}).json()
+    assert plan["override_reason"] is None
+
+
+def test_overridden_unknown_dependency_plan_runs_the_unresolved_flow_but_leaves_it_alone(client, scanned, adapter, truth, monkeypatch):
+    case = next(c for c in truth["flow_path_cases"] if c["case"] == "dynamic_path" and not c["breaks_if_revoked"]
+                and c["connection_type"] == "user")
+    a = _finding(client, "UNKNOWN_DEPENDENCY", site_name=case["site_name"])
+    flow_before = adapter.get_flow(case["flow_id"])
+    plan = _approved_plan(client, a, override_reason="flow owner confirmed it only reads the leave reports")
+    calls = _record_calls(adapter, monkeypatch)
+    plan = _execute(client, plan)
+    assert plan["state"] == "COMPLETED" and plan["steps"][1]["before_state"] == {"flows": []}  # nothing to protect
+    target = ("delete", a["file_id"], a["permission_id"])
+    assert calls == [("run_flow", case["flow_id"]), target, ("run_flow", case["flow_id"])]
+    assert adapter.get_flow(case["flow_id"]) == flow_before
+    assert a["permission_id"] not in _permission_ids(adapter, a["file_id"])
+
+
+def test_overridden_unknown_dependency_plan_rolls_back_when_the_flow_really_breaks(client, scanned, adapter, truth):
+    case = next(c for c in truth["flow_path_cases"] if c["case"] == "dynamic_path" and c["breaks_if_revoked"])
+    a = _finding(client, "UNKNOWN_DEPENDENCY", permission_id=case["breaks_if_revoked"][0])
+    before = adapter.state_checksum()
+    plan = _execute(client, _approved_plan(client, a, override_reason="looks unused for 200 days"))
+    assert plan["state"] == "ROLLED_BACK"
+    assert _statuses(plan) == {"SNAPSHOT": "SUCCEEDED", "PROTECT_FLOW": "ROLLED_BACK", "PREFLIGHT": "SUCCEEDED",
+                               "REMOVE_BROAD_GRANT": "ROLLED_BACK", "POSTFLIGHT": "FAILED"}
+    assert case["flow_id"] in plan["steps"][4]["error"] and "403" in plan["steps"][4]["error"]
+    assert adapter.state_checksum() == before
+    assert adapter.run_flow(case["flow_id"])["status"] == "Succeeded"
+
+
+def test_init_db_adds_override_reason_to_an_older_app_database(tmp_path):
+    engine = make_engine(tmp_path / "old.db")
+    init_db(engine)
+    with engine.begin() as conn:
+        conn.execute(text("ALTER TABLE remediation_plans DROP COLUMN override_reason"))
+    assert "override_reason" not in {c["name"] for c in inspect(engine).get_columns("remediation_plans")}
+    init_db(engine)
+    init_db(engine)  # and it is safe to run again
+    assert "override_reason" in {c["name"] for c in inspect(engine).get_columns("remediation_plans")}
 
 
 def test_second_plan_for_an_already_removed_permission_fails_at_snapshot(client, scanned, adapter):

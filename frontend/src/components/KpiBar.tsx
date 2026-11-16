@@ -7,6 +7,7 @@ export interface Kpis {
   oversharedPermissions: number;
   criticalFlows: string[];
   breakageCriticalPermissions: number;
+  unknownDependencyPermissions: number;
   safeToRevoke: number;
 }
 
@@ -44,7 +45,9 @@ export function KpiBar({ kpis }: { kpis: Kpis | null }) {
                sub={k ? `${k.oversharedPermissions} broad grants (anonymous / org-wide links)` : "Awaiting scan"} />
       <KpiCard label="Critical Power Automate Flows Protected" value={k?.criticalFlows.length} icon="flow"
                accent="bg-red-500"
-               sub={k ? `${k.breakageCriticalPermissions} BREAKAGE_CRITICAL permissions held back` : "Awaiting scan"} />
+               sub={k ? `${k.breakageCriticalPermissions} BREAKAGE_CRITICAL permissions held back` +
+                 (k.unknownDependencyPermissions ? `, ${k.unknownDependencyPermissions} more as UNKNOWN_DEPENDENCY` : "")
+                 : "Awaiting scan"} />
       <KpiCard label="Safe-to-Revoke Stale Permissions" value={k?.safeToRevoke} icon="check" accent="bg-emerald-500"
                sub={k ? "SAFE_TO_REVOKE: no dependent workflow" : "Awaiting scan"} />
     </section>

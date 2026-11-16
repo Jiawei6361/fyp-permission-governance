@@ -51,10 +51,12 @@ export const api = {
   dryRun: (id: number) => request<DryRunPreview>(`/api/assessments/${id}/dry-run`, { method: "POST" }),
   benchmark: () => request<BenchmarkResults>("/api/benchmark"),
   remediations: () => request<{ total: number; items: RemediationPlan[] }>("/api/remediations"),
-  createRemediation: (assessmentId: number, strategy: Strategy) =>
+  createRemediation: (assessmentId: number, strategy: Strategy, overrideReason?: string) =>
     request<RemediationPlan>("/api/remediations", {
       method: "POST",
-      body: JSON.stringify({ assessment_id: assessmentId, strategy, created_by: ACTOR }),
+      body: JSON.stringify({
+        assessment_id: assessmentId, strategy, created_by: ACTOR, override_reason: overrideReason ?? null,
+      }),
     }),
   remediationAction: (id: number, action: "submit" | "approve" | "reject" | "execute" | "rollback") =>
     request<RemediationPlan>(`/api/remediations/${id}/${action}`, {

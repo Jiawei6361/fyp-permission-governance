@@ -768,11 +768,13 @@
  {
   "permission_id": "Zi0wMjZ8MzIz",
   "file_id": "f-026",
-  "classification": "SAFE_TO_REVOKE",
+  "classification": "UNKNOWN_DEPENDENCY",
   "risk_score": 55,
   "is_overshared": false,
   "is_stale": true,
-  "dependent_flow_ids": []
+  "dependent_flow_ids": [
+   "flow-26"
+  ]
  },
  {
   "permission_id": "Zi0wMjZ8NzY",
@@ -804,11 +806,13 @@
  {
   "permission_id": "Zi0wMjd8MzM1",
   "file_id": "f-027",
-  "classification": "SAFE_TO_REVOKE",
+  "classification": "UNKNOWN_DEPENDENCY",
   "risk_score": 40,
   "is_overshared": false,
   "is_stale": true,
-  "dependent_flow_ids": []
+  "dependent_flow_ids": [
+   "flow-26"
+  ]
  },
  {
   "permission_id": "Zi0wMjd8Nzk",
@@ -2168,6 +2172,17 @@
   "dependent_flow_ids": []
  },
  {
+  "permission_id": "Zi0wNzF8MzM4",
+  "file_id": "f-071",
+  "classification": "UNKNOWN_DEPENDENCY",
+  "risk_score": 55,
+  "is_overshared": false,
+  "is_stale": true,
+  "dependent_flow_ids": [
+   "flow-27"
+  ]
+ },
+ {
   "permission_id": "Zi0wNzJ8MjE0",
   "file_id": "f-072",
   "classification": "KEEP_REQUIRED",
@@ -2224,11 +2239,13 @@
  {
   "permission_id": "Zi0wNzN8MzEy",
   "file_id": "f-073",
-  "classification": "SAFE_TO_REVOKE",
+  "classification": "UNKNOWN_DEPENDENCY",
   "risk_score": 70,
   "is_overshared": true,
   "is_stale": false,
-  "dependent_flow_ids": []
+  "dependent_flow_ids": [
+   "flow-27"
+  ]
  },
  {
   "permission_id": "Zi0wNzR8MjIw",
@@ -2433,11 +2450,13 @@
  {
   "permission_id": "Zi0wODB8MzMz",
   "file_id": "f-080",
-  "classification": "SAFE_TO_REVOKE",
+  "classification": "UNKNOWN_DEPENDENCY",
   "risk_score": 15,
   "is_overshared": false,
   "is_stale": true,
-  "dependent_flow_ids": []
+  "dependent_flow_ids": [
+   "flow-27"
+  ]
  },
  {
   "permission_id": "Zi0wODF8MjQx",
@@ -2465,6 +2484,17 @@
   "is_overshared": false,
   "is_stale": false,
   "dependent_flow_ids": []
+ },
+ {
+  "permission_id": "Zi0wODF8MzM5",
+  "file_id": "f-081",
+  "classification": "BREAKAGE_CRITICAL",
+  "risk_score": 15,
+  "is_overshared": false,
+  "is_stale": true,
+  "dependent_flow_ids": [
+   "flow-30"
+  ]
  },
  {
   "permission_id": "Zi0wODJ8MjQ0",

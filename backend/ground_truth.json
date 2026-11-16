@@ -329,6 +329,26 @@
       ],
       "kind": "sole_direct_grant",
       "stale_by_access_log": false
+    },
+    {
+      "permission_id": "Zi0wNzF8MzM4",
+      "file_id": "f-071",
+      "principal_id": "u-028",
+      "flow_ids": [
+        "flow-27"
+      ],
+      "kind": "sole_direct_grant_dynamic_path",
+      "stale_by_access_log": true
+    },
+    {
+      "permission_id": "Zi0wODF8MzM5",
+      "file_id": "f-081",
+      "principal_id": "u-035",
+      "flow_ids": [
+        "flow-30"
+      ],
+      "kind": "sole_direct_grant",
+      "stale_by_access_log": true
     }
   ],
   "benign_broad_grants": [
@@ -356,18 +376,118 @@
     "flow-22",
     "flow-23",
     "flow-24",
-    "flow-25"
+    "flow-25",
+    "flow-26",
+    "flow-28",
+    "flow-29"
+  ],
+  "flow_path_cases": [
+    {
+      "flow_id": "flow-26",
+      "case": "dynamic_path",
+      "site_name": "hr",
+      "action": "Process_file",
+      "action_path": "/sites/hr/Shared Documents/@{variables('ReportName')}",
+      "connection_type": "user",
+      "connection_identity": "u-011",
+      "runtime_file_id": "f-022",
+      "expected_resolution": "unresolved",
+      "expected_file_id": null,
+      "expected_breakage_critical_permission_ids": [],
+      "breaks_if_revoked": [],
+      "expected_result": "Unresolved. Every flagged permission on the site is UNKNOWN_DEPENDENCY. The flow really runs through the inherited site group, so none of them would break it.",
+      "expected_unknown_dependency_permission_ids": [
+        "Zi0wMjZ8MzIz",
+        "Zi0wMjd8MzM1"
+      ]
+    },
+    {
+      "flow_id": "flow-27",
+      "case": "dynamic_path",
+      "site_name": "it-infra",
+      "action": "Process_file",
+      "action_path": "@{outputs('Compose_file_path')}",
+      "connection_type": "user",
+      "connection_identity": "u-028",
+      "runtime_file_id": "f-071",
+      "expected_resolution": "unresolved",
+      "expected_file_id": null,
+      "expected_breakage_critical_permission_ids": [],
+      "breaks_if_revoked": [
+        "Zi0wNzF8MzM4"
+      ],
+      "expected_result": "Unresolved. Every flagged permission on the site is UNKNOWN_DEPENDENCY. Revoking the stale-looking direct grant really breaks the flow.",
+      "expected_unknown_dependency_permission_ids": [
+        "Zi0wNzF8MzM4",
+        "Zi0wNzN8MzEy",
+        "Zi0wODB8MzMz"
+      ]
+    },
+    {
+      "flow_id": "flow-28",
+      "case": "dynamic_path",
+      "site_name": "payroll",
+      "action": "Process_file",
+      "action_path": "@{triggerBody()?['path']}",
+      "connection_type": "service_principal",
+      "connection_identity": null,
+      "runtime_file_id": "f-012",
+      "expected_resolution": "unresolved",
+      "expected_file_id": null,
+      "expected_breakage_critical_permission_ids": [],
+      "breaks_if_revoked": [],
+      "expected_result": "Unresolved, but the connection is a service principal, so no permission on the site becomes UNKNOWN_DEPENDENCY.",
+      "expected_unknown_dependency_permission_ids": []
+    },
+    {
+      "flow_id": "flow-29",
+      "case": "double_encoded_path",
+      "site_name": "contracts",
+      "action": "Process_file",
+      "action_path": "%252Fsites%252Fcontracts%252FShared%2520Documents%252FActive%252FSupplier%2520Agreement%25202025.xlsx",
+      "connection_type": "user",
+      "connection_identity": "u-039",
+      "runtime_file_id": "f-041",
+      "expected_resolution": "resolved",
+      "expected_file_id": "f-041",
+      "expected_breakage_critical_permission_ids": [],
+      "breaks_if_revoked": [],
+      "expected_result": "Resolved to the file after decoding twice. The department member has access through the site group, so nothing is flagged.",
+      "expected_unknown_dependency_permission_ids": []
+    },
+    {
+      "flow_id": "flow-30",
+      "case": "double_encoded_path",
+      "site_name": "operations",
+      "action": "Process_file",
+      "action_path": "%252Fsites%252Foperations%252FShared%2520Documents%252FLogistics%252FFleet%2520Schedule%25202025.xlsx",
+      "connection_type": "user",
+      "connection_identity": "u-035",
+      "runtime_file_id": "f-081",
+      "expected_resolution": "resolved",
+      "expected_file_id": "f-081",
+      "expected_breakage_critical_permission_ids": [
+        "Zi0wODF8MzM5"
+      ],
+      "breaks_if_revoked": [
+        "Zi0wODF8MzM5"
+      ],
+      "expected_result": "Resolved to the file after decoding twice. The stale-looking direct grant is BREAKAGE_CRITICAL.",
+      "expected_unknown_dependency_permission_ids": []
+    }
   ],
   "counts": {
     "users": 50,
     "files": 100,
-    "flows": 25,
-    "permissions": 337,
+    "flows": 30,
+    "permissions": 339,
     "overshared_files": 12,
     "stale_safe_to_revoke_permissions": 15,
-    "workflow_breaking_permissions": 12,
-    "workflow_breaking_flows": 12,
-    "benign_broad_grants": 2
+    "workflow_breaking_permissions": 14,
+    "workflow_breaking_flows": 14,
+    "benign_broad_grants": 2,
+    "flow_path_cases": 5,
+    "unknown_dependency_permissions": 5
   },
   "seed": 42,
   "reference_time": "2026-11-15T09:00:00"

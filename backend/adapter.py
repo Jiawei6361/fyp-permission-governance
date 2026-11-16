@@ -20,6 +20,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Iterator
 from datetime import datetime
 from pathlib import Path
+from urllib.parse import unquote
 from uuid import uuid4
 
 from pydantic import ValidationError
@@ -71,7 +72,11 @@ class TenantAdapter(ABC):
 
     @abstractmethod
     def list_connections(self) -> list[dict]:
-        """Power Platform connection resources: which identity each connectionName runs as."""
+        """Power Platform connection resources, one per connectionName.
+
+        `properties` holds the identity the connection runs as: `authenticatedUser.id` (a user,
+        delegated auth) or `servicePrincipal.id` (an application), and `authType` says which.
+        """
 
     # ---- writes
     @abstractmethod
@@ -207,8 +212,13 @@ class SimulatorAdapter(TenantAdapter):
                     return _failed(flow_id, 401, "ConnectionNotFound", name, None,
                                    f"Action '{name}' has no usable SharePoint connection.")
                 params = inputs.get("parameters") or {}
-                path = params.get("path") or params.get("file")
-                file = files_by_path.get(path) if path else s.get(File, params.get("id") or "")
+                # The connector stores the path URL-encoded twice; decoding a plain path changes nothing.
+                path = unquote(unquote(params.get("path") or params.get("file") or ""))
+                if "@{" in path or path.startswith("@"):
+                    # A runtime expression. The simulator knows what it evaluates to: the flow's target file.
+                    file = s.get(File, fl.target_file_id)
+                else:
+                    file = files_by_path.get(path) if path else s.get(File, params.get("id") or "")
                 if file is None:
                     return _failed(flow_id, 404, "itemNotFound", name, None,
                                    f"Action '{name}' targets '{path}', which does not exist.")
@@ -261,7 +271,9 @@ class SimulatorAdapter(TenantAdapter):
                     else {"servicePrincipal": dict(SP_APP)})
         return {"name": c.name, "id": f"{CONNECTIONS_API}/connections/{c.name}",
                 "type": "Microsoft.PowerApps/apis/connections",
-                "properties": {"apiId": CONNECTIONS_API, "displayName": "SharePoint", **identity}}
+                "properties": {"apiId": CONNECTIONS_API, "displayName": "SharePoint",
+                               "authType": "oauth" if c.connection_type == "user" else "servicePrincipal",
+                               **identity}}
 
 
 # ---------------------------------------------------------------- run_flow access rules

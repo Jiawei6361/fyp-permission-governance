@@ -91,7 +91,7 @@ class FlowResource(BaseModel):
 
 
 # ================================================================ Milestone 2 API schemas
-Classification = Literal["BREAKAGE_CRITICAL", "SAFE_TO_REVOKE", "KEEP_REQUIRED"]
+Classification = Literal["BREAKAGE_CRITICAL", "UNKNOWN_DEPENDENCY", "SAFE_TO_REVOKE", "KEEP_REQUIRED"]
 ViewRole = Literal["admin", "manager"]
 
 
@@ -105,6 +105,7 @@ class FlowDependencyOut(BaseModel):
     connection_name: str | None
     is_critical_flow: bool
     mitigation: str
+    unresolved_reason: str | None = None  # set when the action's file could not be worked out
 
 
 class ScanSummary(BaseModel):
@@ -120,6 +121,7 @@ class ScanSummary(BaseModel):
     flagged_for_revocation: int
     by_classification: dict[str, int]
     flows_at_risk: list[str]
+    flows_unresolved: list[str]  # active flows with an action whose file could not be worked out
 
 
 class AssessmentOut(BaseModel):
@@ -183,6 +185,7 @@ class RemediationCreate(BaseModel):
     assessment_id: int
     strategy: Strategy = "service_principal"
     created_by: str = "it-admin"
+    override_reason: str | None = None  # required when the assessment is UNKNOWN_DEPENDENCY
 
 
 class ActorIn(BaseModel):
@@ -213,6 +216,7 @@ class RemediationPlanOut(BaseModel):
     risk_score: int
     dependent_flows: list[FlowDependencyOut]
     strategy: Strategy
+    override_reason: str | None
     exposed_before: int | None
     exposed_after: int | None
     created_by: str
@@ -249,4 +253,5 @@ class DryRunPreview(BaseModel):
     target: dict[str, str | None]
     warning: str | None
     breakage: list[FlowDependencyOut]
+    unresolved: list[FlowDependencyOut]  # flows that could not be analysed (UNKNOWN_DEPENDENCY)
     preconditions: list[str]

@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import sys
 from datetime import timedelta
+from urllib.parse import unquote
 
 from pydantic import ValidationError
 from sqlalchemy import inspect, select, text
@@ -54,7 +55,7 @@ def main() -> int:
         flows = list(s.scalars(select(Flow)))
 
     # ---- 2. counts and foreign keys
-    check("2a 50 users / 100 files / 25 flows", (len(users), len(files), len(flows)) == (50, 100, 25),
+    check("2a 50 users / 100 files / 30 flows", (len(users), len(files), len(flows)) == (50, 100, 30),
           f"{len(users)}/{len(files)}/{len(flows)}")
     check("2b flows reference existing users and files",
           all(f.owner_user_id in users and f.target_file_id in files for f in flows))
@@ -67,8 +68,9 @@ def main() -> int:
     c = truth["counts"]
     check("3a ground_truth counts consistent with lists",
           c["overshared_files"] == len(truth["overshared_files"]) == 12
-          and c["workflow_breaking_permissions"] == len(truth["workflow_breaking_permissions"]) == 12
-          and c["workflow_breaking_flows"] == 12
+          and c["workflow_breaking_permissions"] == len(truth["workflow_breaking_permissions"]) == 14
+          and c["workflow_breaking_flows"] == 14
+          and c["flow_path_cases"] == len(truth["flow_path_cases"]) == 5
           and c["stale_safe_to_revoke_permissions"] == len(truth["stale_safe_to_revoke"]) == 15
           and c["benign_broad_grants"] == 2,
           f"overshared={c['overshared_files']} stale_safe={c['stale_safe_to_revoke_permissions']} "
@@ -145,13 +147,28 @@ def main() -> int:
             FlowResource.model_validate(fl)
         except ValidationError as exc:
             flow_bad.append(str(exc)[:80])
+    def action_paths(fl: Flow) -> list[str]:
+        return [a["inputs"]["parameters"]["path"]
+                for a in fl.raw_definition_json["properties"]["definition"]["actions"].values()
+                if a["type"] == "OpenApiConnection"]
+
+    dynamic = {c["flow_id"] for c in truth["flow_path_cases"] if c["case"] == "dynamic_path"}
+    encoded = {c["flow_id"] for c in truth["flow_path_cases"] if c["case"] == "double_encoded_path"}
     paths_ok = all(
-        any(a["inputs"]["parameters"]["path"] == files[fl.target_file_id].file_path
-            for a in fl.raw_definition_json["properties"]["definition"]["actions"].values()
-            if a["type"] == "OpenApiConnection")
+        all("@" in p for p in action_paths(fl)) if fl.id in dynamic
+        else all(p != files[fl.target_file_id].file_path
+                 and unquote(unquote(p)) == files[fl.target_file_id].file_path for p in action_paths(fl))
+        if fl.id in encoded
+        else action_paths(fl) == [files[fl.target_file_id].file_path]
         for fl in flows)
-    check("4d flow definitions validate; each action references its target file path",
-          not flow_bad and paths_ok, f"{len(adapter.list_flows())} flows")
+    check("4d flow definitions validate; action paths are plain (25), dynamic (3) or double-encoded (2)",
+          not flow_bad and paths_ok and (len(dynamic), len(encoded)) == (3, 2), f"{len(adapter.list_flows())} flows")
+    check("4e every connectionReferences connectionName resolves to a connection with an identity",
+          all((c["properties"].get("authenticatedUser") or c["properties"].get("servicePrincipal") or {}).get("id")
+              for c in adapter.list_connections())
+          and {r["connectionName"] for fl in adapter.list_flows()
+               for r in fl["properties"]["connectionReferences"].values()}
+          <= {c["name"] for c in adapter.list_connections()}, f"{len(adapter.list_connections())} connections")
 
     # ---- determinism
     a, b = seed.build_dataset(), seed.build_dataset()

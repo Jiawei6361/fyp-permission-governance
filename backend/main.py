@@ -25,7 +25,8 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session, sessionmaker
 
 from backend.adapter import SimulatorAdapter, TenantAdapter
-from backend.flow_mapper import BREAKAGE_CRITICAL, KEEP_REQUIRED, SAFE_TO_REVOKE, classify
+from backend.flow_mapper import (BREAKAGE_CRITICAL, CLASSIFICATIONS, KEEP_REQUIRED, SAFE_TO_REVOKE,
+                                 UNKNOWN_DEPENDENCY, classify)
 from backend import remediation
 from backend.models import DB_PATH, Assessment, RemediationPlan, init_db, make_engine
 from backend.scanner import (EVERYONE, OVERSHARE_THRESHOLD, SENSITIVE_LABELS, STALE_DAYS, WEIGHTS, FileFacts,
@@ -92,9 +93,11 @@ def run_scan(session: Session, adapter: TenantAdapter, now: datetime = REFERENCE
         overshared_files=len({a.risk.file.id for a in assessed if a.risk.is_overshared}),
         stale_permissions=sum(a.risk.is_stale for a in assessed),
         flagged_for_revocation=sum(a.risk.flagged for a in assessed),
-        by_classification={c: counts.get(c, 0) for c in (BREAKAGE_CRITICAL, SAFE_TO_REVOKE, KEEP_REQUIRED)},
+        by_classification={c: counts.get(c, 0) for c in CLASSIFICATIONS},
         flows_at_risk=sorted({d.flow_id for a in assessed if a.classification == BREAKAGE_CRITICAL
                               for d in a.dependencies}),
+        flows_unresolved=sorted({d.flow_id for a in assessed if a.classification == UNKNOWN_DEPENDENCY
+                                 for d in a.dependencies if d.unresolved_reason}),
     )
 
 
@@ -142,6 +145,7 @@ _AUDIENCE = {
 def _manager_card(a: Assessment, f: FileFacts, users: dict[str, UserFacts]) -> ManagerCard:
     who = _principal_display(a, users)
     flows = ", ".join(f"'{d['flow_name']}'" for d in a.dependent_flows)
+    unclear = ", ".join(f"'{d['flow_name']}'" for d in a.dependent_flows if d.get("unresolved_reason"))
     if a.is_overshared:
         headline = f"'{f.file_name}' ({f.sensitivity_label}) is open to {_AUDIENCE[a.exposure]}"
         why = "People with no business need can open this file."
@@ -160,6 +164,9 @@ def _manager_card(a: Assessment, f: FileFacts, users: dict[str, UserFacts]) -> M
     elif a.classification == BREAKAGE_CRITICAL:
         action = (f"Do not remove this access yet. The automated workflow {flows} needs it to run. "
                   "IT will first move that workflow onto a dedicated service account, then remove the access.")
+    elif a.classification == UNKNOWN_DEPENDENCY:
+        action = (f"Do not remove this access yet. The automated workflow {unclear} on this site picks its file "
+                  "while it runs, so we cannot tell whether it needs this access. IT will check the workflow first.")
     elif a.dependent_flows:
         action = f"Keep this access. The automated workflow {flows} relies on it."
     else:
@@ -192,7 +199,8 @@ def _plan_out(plan: RemediationPlan, session: Session, files: dict[str, FileFact
         id=plan.id, state=plan.state, assessment_id=a.id, scan_id=a.scan_id, permission_id=plan.permission_id,
         file_id=plan.file_id, file_name=f.file_name, site_name=f.site_name,
         principal_display=_principal_display(a, users), classification=a.classification, risk_score=a.risk_score,
-        dependent_flows=a.dependent_flows, strategy=plan.strategy, exposed_before=plan.exposed_before,
+        dependent_flows=a.dependent_flows, strategy=plan.strategy, override_reason=plan.override_reason,
+        exposed_before=plan.exposed_before,
         exposed_after=plan.exposed_after, created_by=plan.created_by, approved_by=plan.approved_by,
         executed_by=plan.executed_by, created_at=plan.created_at, approved_at=plan.approved_at,
         executed_at=plan.executed_at, finished_at=plan.finished_at,
@@ -253,10 +261,23 @@ def _register_routes(app: FastAPI) -> None:
     def dry_run(assessment_id: int, session: Session = Depends(get_db)) -> DryRunPreview:
         a, f = _get_assessment(session, adapter, assessment_id)
         path = f"/drives/{a.drive_id}/items/{a.file_id}/permissions/{a.permission_id}"
-        flows = ", ".join(f"'{d['flow_name']}' ({d['flow_id']}, action {d['action_name']})" for d in a.dependent_flows)
+        blocking = a.classification in (BREAKAGE_CRITICAL, UNKNOWN_DEPENDENCY)
+        unresolved = [d for d in a.dependent_flows if d.get("unresolved_reason")] if blocking else []
+        breakage = [d for d in a.dependent_flows if not d.get("unresolved_reason")] if blocking else []
+        flows = ", ".join(f"'{d['flow_name']}' ({d['flow_id']}, action {d['action_name']})"
+                          for d in (breakage if blocking else a.dependent_flows))
         if a.classification == BREAKAGE_CRITICAL:
             warning = (f"BLOCKED: revoking this permission would break active Power Automate flow(s) {flows}. "
                        f"{a.mitigation}.")
+            pre = [f"{d['mitigation']} (flow {d['flow_id']})" for d in a.dependent_flows]
+        elif a.classification == UNKNOWN_DEPENDENCY:
+            names = ", ".join(f"'{d['flow_name']}' ({d['flow_id']}, action {d['action_name']}: {d['unresolved_reason']})"
+                              for d in unresolved)
+            warning = (f"BLOCKED: unknown flow dependency. Active flow(s) on site '{f.site_name}' could not be "
+                       f"analysed, so they may or may not need this permission: {names}. {a.mitigation}. "
+                       "A remediation plan needs an explicit override reason.")
+            if breakage:
+                warning += f" Revoking it would also break flow(s) {flows}."
             pre = [f"{d['mitigation']} (flow {d['flow_id']})" for d in a.dependent_flows]
         elif a.classification == KEEP_REQUIRED:
             warning = "BLOCKED: this permission is not flagged for revocation (legitimate active access)."
@@ -272,8 +293,7 @@ def _register_routes(app: FastAPI) -> None:
                                         headers={"Authorization": "Bearer <redacted>"}, expected_status=204),
             target={"drive_id": a.drive_id, "item_id": a.file_id, "permission_id": a.permission_id,
                     "file_path": f.file_path, "principal_id": a.principal_id, "principal_type": a.principal_type},
-            warning=warning, breakage=a.dependent_flows if a.classification == BREAKAGE_CRITICAL else [],
-            preconditions=pre)
+            warning=warning, breakage=breakage, unresolved=unresolved, preconditions=pre)
 
     # ---- remediation plans (these are the only routes that change the tenant)
     def plan_response(plan: RemediationPlan, session: Session) -> RemediationPlanOut:
@@ -295,7 +315,7 @@ def _register_routes(app: FastAPI) -> None:
         if a is None:
             raise HTTPException(404, f"assessment {body.assessment_id} not found")
         try:
-            plan = remediation.create_plan(session, a, body.strategy, body.created_by)
+            plan = remediation.create_plan(session, a, body.strategy, body.created_by, body.override_reason)
         except remediation.RemediationError as exc:
             raise HTTPException(exc.status, exc.message) from exc
         return plan_response(plan, session)

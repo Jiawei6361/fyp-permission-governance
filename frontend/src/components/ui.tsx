@@ -68,6 +68,7 @@ export function Icon({ name, className = "h-4 w-4" }: { name: IconName; classNam
 
 const CLASS_STYLE: Record<Classification, { label: string; cls: string }> = {
   BREAKAGE_CRITICAL: { label: "Breakage-Critical", cls: "bg-red-50 text-red-700 ring-red-600/20" },
+  UNKNOWN_DEPENDENCY: { label: "Unknown Dependency", cls: "bg-amber-50 text-amber-800 ring-amber-600/20" },
   SAFE_TO_REVOKE: { label: "Safe to Revoke", cls: "bg-emerald-50 text-emerald-700 ring-emerald-600/20" },
   KEEP_REQUIRED: { label: "Keep (Required)", cls: "bg-slate-100 text-slate-600 ring-slate-500/20" },
 };
@@ -76,7 +77,8 @@ export function ClassificationBadge({ value }: { value: Classification }) {
   const s = CLASS_STYLE[value];
   return (
     <span className={`chip ${s.cls}`}>
-      <Icon name={value === "BREAKAGE_CRITICAL" ? "lock" : value === "SAFE_TO_REVOKE" ? "check" : "shield"}
+      <Icon name={value === "BREAKAGE_CRITICAL" ? "lock" : value === "UNKNOWN_DEPENDENCY" ? "alert"
+                  : value === "SAFE_TO_REVOKE" ? "check" : "shield"}
             className="h-3 w-3" />
       {s.label}
     </span>

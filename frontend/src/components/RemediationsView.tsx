@@ -173,6 +173,7 @@ export function RemediationsView({ selectedId, onSelect, notify }: Props) {
                   value={plan.dependent_flows.length
                     ? [...new Set(plan.dependent_flows.map((d) => `${d.flow_name} (${d.flow_id})`))].join(", ")
                     : "None"} />
+            {plan.override_reason && <Fact label="Override reason (unknown dependency)" value={plan.override_reason} />}
             <Fact label="Created" value={`${plan.created_by} · ${when(plan.created_at)}`} />
             <Fact label="Approved" value={plan.approved_by ? `${plan.approved_by} · ${when(plan.approved_at)}` : "Not yet"} />
             <Fact label="Executed" value={plan.executed_by ? `${plan.executed_by} · ${when(plan.executed_at)}` : "Not yet"} />

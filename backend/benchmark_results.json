@@ -4,20 +4,20 @@
   "ground_truth": {
     "safe_to_revoke_positives": 23,
     "overshared_positives": 12,
-    "workflow_breaking_positives": 12,
-    "permissions_total": 337,
-    "flows_total": 25
+    "workflow_breaking_positives": 14,
+    "permissions_total": 339,
+    "flows_total": 30
   },
   "engines": {
     "baseline": {
       "name": "Baseline (permission-only, Purview-style)",
       "revocation_recommendation": {
         "tp": 23,
-        "fp": 7,
+        "fp": 9,
         "fn": 0,
-        "precision": 0.7667,
+        "precision": 0.7188,
         "recall": 1.0,
-        "f1": 0.8679
+        "f1": 0.8364
       },
       "oversharing_detection": {
         "tp": 12,
@@ -30,12 +30,12 @@
       "flow_dependency_detection": {
         "tp": 0,
         "fp": 0,
-        "fn": 12,
+        "fn": 14,
         "precision": 0.0,
         "recall": 0.0,
         "f1": 0.0
       },
-      "recommended_revocations": 30,
+      "recommended_revocations": 32,
       "flows_broken_if_executed": [
         "flow-01",
         "flow-02",
@@ -43,7 +43,9 @@
         "flow-04",
         "flow-05",
         "flow-06",
-        "flow-07"
+        "flow-07",
+        "flow-27",
+        "flow-30"
       ],
       "critical_flows_broken_if_executed": [
         "flow-01",
@@ -51,19 +53,21 @@
         "flow-03",
         "flow-05",
         "flow-06",
-        "flow-07"
+        "flow-07",
+        "flow-27",
+        "flow-30"
       ],
       "benign_grants_flagged": []
     },
     "proposed": {
       "name": "Proposed context-aware engine (ours)",
       "revocation_recommendation": {
-        "tp": 23,
+        "tp": 19,
         "fp": 0,
-        "fn": 0,
+        "fn": 4,
         "precision": 1.0,
-        "recall": 1.0,
-        "f1": 1.0
+        "recall": 0.8261,
+        "f1": 0.9048
       },
       "oversharing_detection": {
         "tp": 12,
@@ -74,18 +78,27 @@
         "f1": 1.0
       },
       "flow_dependency_detection": {
-        "tp": 12,
+        "tp": 13,
         "fp": 0,
-        "fn": 0,
+        "fn": 1,
         "precision": 1.0,
-        "recall": 1.0,
-        "f1": 1.0
+        "recall": 0.9286,
+        "f1": 0.963
       },
-      "recommended_revocations": 23,
+      "recommended_revocations": 19,
       "flows_broken_if_executed": [],
       "critical_flows_broken_if_executed": [],
       "benign_grants_flagged": []
     }
+  },
+  "unknown_dependency_holds": {
+    "permissions_held": 5,
+    "would_break_a_flow": 1,
+    "safe_but_held": 4,
+    "flows_unresolved": [
+      "flow-26",
+      "flow-27"
+    ]
   },
   "workflow_breakage_prevention_rate_pct": 100.0
 }

@@ -9,6 +9,10 @@ saga of five steps, always in this order:
   4. REMOVE_BROAD_GRANT  delete the permission (the only step that removes access)
   5. POSTFLIGHT          every dependent flow still runs and the permission is gone
 
+A flow whose action could not be analysed (an UNKNOWN_DEPENDENCY plan) is not changed in step 2,
+because there is nothing known to protect, but steps 3 and 5 still run it. If removing the
+permission breaks it, step 5 fails and the permission is put back.
+
 Step 4 never runs unless step 3 succeeded. If any step fails, the completed steps are undone
 in reverse order from their saved `before_state`. A COMPLETED plan can be rolled back by hand.
 
@@ -22,6 +26,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from backend.adapter import TenantAdapter
+from backend.flow_mapper import UNKNOWN_DEPENDENCY
 from backend.models import Assessment, RemediationPlan, RemediationStep
 from backend.seed import NOW as REFERENCE_TIME
 
@@ -60,9 +65,14 @@ def _utcnow() -> datetime:
 
 
 # ---------------------------------------------------------------- workflow
-def create_plan(session: Session, assessment: Assessment, strategy: str, actor: str) -> RemediationPlan:
+def create_plan(session: Session, assessment: Assessment, strategy: str, actor: str,
+                override_reason: str | None = None) -> RemediationPlan:
     if strategy not in STRATEGIES:
         raise RemediationError(422, f"unknown strategy '{strategy}'")
+    override_reason = (override_reason or "").strip() or None
+    if assessment.classification == UNKNOWN_DEPENDENCY and override_reason is None:
+        raise RemediationError(422, "this permission has an unknown flow dependency; an override_reason is "
+                                    "required to create a remediation plan for it")
     if not (assessment.is_overshared or assessment.is_stale):
         raise RemediationError(409, "this permission is not flagged for revocation, so there is nothing to remediate")
     clash = session.scalar(select(RemediationPlan).where(RemediationPlan.permission_id == assessment.permission_id,
@@ -70,7 +80,8 @@ def create_plan(session: Session, assessment: Assessment, strategy: str, actor: 
     if clash is not None:
         raise RemediationError(409, f"plan {clash.id} for this permission is already open ({clash.state})")
     plan = RemediationPlan(state=DRAFT, assessment_id=assessment.id, permission_id=assessment.permission_id,
-                           file_id=assessment.file_id, strategy=strategy, created_by=actor, created_at=_utcnow())
+                           file_id=assessment.file_id, strategy=strategy, override_reason=override_reason,
+                           created_by=actor, created_at=_utcnow())
     plan.steps = [RemediationStep(seq=i, action=action, status=PENDING) for i, action in enumerate(STEP_ORDER, 1)]
     session.add(plan)
     session.commit()
@@ -141,9 +152,15 @@ class _Run:
     def __init__(self, session: Session, adapter: TenantAdapter, plan: RemediationPlan, now: datetime):
         self.session, self.adapter, self.plan, self.now = session, adapter, plan, now
         assessment = session.get(Assessment, plan.assessment_id)
-        # flow id -> role its actions need on the file ("write" wins over "read")
+        # flow id -> role its actions need on the file ("write" wins over "read"): the flows to protect
         self.flows: dict[str, str] = {}
+        # every flow to run in PREFLIGHT and POSTFLIGHT, including those that could not be analysed
+        self.watched: list[str] = []
         for dep in assessment.dependent_flows:
+            if dep["flow_id"] not in self.watched:
+                self.watched.append(dep["flow_id"])
+            if dep.get("unresolved_reason"):
+                continue  # nothing known to protect; it is only run
             if self.flows.get(dep["flow_id"]) != "write":
                 self.flows[dep["flow_id"]] = dep["required_role"]
         self.handlers = {SNAPSHOT: self.snapshot, PROTECT_FLOW: self.protect_flow, PREFLIGHT: self.preflight,
@@ -220,7 +237,7 @@ class _Run:
 
     # ---- 3 and 5
     def _run_flows(self, step: RemediationStep) -> list[str]:
-        runs = [self.adapter.run_flow(fid) for fid in self.flows]
+        runs = [self.adapter.run_flow(fid) for fid in self.watched]
         step.result = {"runs": runs}
         return [f"{r['flow_id']}: {r['error']['message']}" for r in runs if r["status"] != "Succeeded"]
 

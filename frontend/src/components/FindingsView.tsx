@@ -4,7 +4,7 @@ import {
   ClassificationBadge, CopilotBadge, Icon, ReviewBadge, RiskScore, SensitivityBadge, riskTone,
 } from "./ui";
 
-export type FilterTab = "all" | "BREAKAGE_CRITICAL" | "SAFE_TO_REVOKE";
+export type FilterTab = "all" | "BREAKAGE_CRITICAL" | "UNKNOWN_DEPENDENCY" | "SAFE_TO_REVOKE";
 
 interface Props {
   role: ViewRole;
@@ -33,6 +33,7 @@ export function FindingsView(props: Props) {
   const counts = useMemo(() => ({
     all: source.filter((i) => isFinding(i.classification)).length,
     BREAKAGE_CRITICAL: source.filter((i) => i.classification === "BREAKAGE_CRITICAL").length,
+    UNKNOWN_DEPENDENCY: source.filter((i) => i.classification === "UNKNOWN_DEPENDENCY").length,
     SAFE_TO_REVOKE: source.filter((i) => i.classification === "SAFE_TO_REVOKE").length,
     retained: source.filter((i) => i.classification === "KEEP_REQUIRED").length,
   }), [source]);
@@ -40,6 +41,7 @@ export function FindingsView(props: Props) {
   const tabs: { id: FilterTab; label: string }[] = [
     { id: "all", label: "All Findings" },
     { id: "BREAKAGE_CRITICAL", label: "Breakage-Critical (Blocked)" },
+    { id: "UNKNOWN_DEPENDENCY", label: "Unknown Dependency (Blocked)" },
     { id: "SAFE_TO_REVOKE", label: "Safe to Revoke" },
   ];
 
@@ -56,6 +58,7 @@ export function FindingsView(props: Props) {
                 {t.label}
                 <span className={`rounded-full px-1.5 text-xs tabular-nums ${
                   t.id === "BREAKAGE_CRITICAL" ? "bg-red-100 text-red-700"
+                  : t.id === "UNKNOWN_DEPENDENCY" ? "bg-amber-100 text-amber-800"
                   : t.id === "SAFE_TO_REVOKE" ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-700"}`}>
                   {counts[t.id]}
                 </span>
@@ -173,6 +176,7 @@ function AdminTable({ items, reviews, onPreview }: Props & { items: AssessmentOu
                             <li key={d.flow_id + d.action_name} className="font-mono text-xs">
                               <span className="font-semibold text-slate-900">{d.flow_id}</span>
                               <span className="text-slate-500"> · {d.action_name} ({d.operation_id})</span>
+                              {d.unresolved_reason && <span className="font-semibold text-amber-700"> · unresolved</span>}
                             </li>
                           ))}
                         </ul>
@@ -255,6 +259,11 @@ function AdminDetail({ a }: { a: AssessmentOut }) {
                   <dt className="text-slate-400">identity</dt><dd>{d.connection_identity}</dd>
                   <dt className="text-slate-400">connection</dt><dd className="break-all">{d.connection_name ?? "—"}</dd>
                 </dl>
+                {d.unresolved_reason && (
+                  <p className="mt-1.5 rounded bg-amber-50 p-1.5 text-amber-800">
+                    <strong>Unresolved:</strong> {d.unresolved_reason}. This flow may or may not use this permission.
+                  </p>
+                )}
               </li>
             ))}
           </ul>
@@ -283,8 +292,10 @@ function ManagerGrid({ items, reviews, onReview, onPreview }: Props & { items: M
       {items.map((c) => {
         const status = reviews[c.id];
         const blocked = c.classification === "BREAKAGE_CRITICAL";
+        const held = c.classification === "UNKNOWN_DEPENDENCY";
         return (
-          <article key={c.id} className={`card flex flex-col p-5 ${blocked ? "border-l-4 border-l-red-500" : ""}`}>
+          <article key={c.id} className={`card flex flex-col p-5 ${
+            blocked ? "border-l-4 border-l-red-500" : held ? "border-l-4 border-l-amber-500" : ""}`}>
             <header className="flex flex-wrap items-center gap-2">
               <span className={`chip ${LEVEL_STYLE[c.risk_level] ?? "bg-slate-100 text-slate-600 ring-slate-500/20"}`}>
                 {c.risk_level} risk
@@ -302,18 +313,22 @@ function ManagerGrid({ items, reviews, onReview, onPreview }: Props & { items: M
                 <dt className="font-medium text-slate-500">Why it matters</dt>
                 <dd className="text-slate-700">{c.why_it_matters}</dd>
               </div>
-              <div className={`rounded-lg p-3 ${blocked ? "bg-red-50" : c.safe_to_fix_now ? "bg-emerald-50" : "bg-slate-50"}`}>
-                <dt className={`font-medium ${blocked ? "text-red-800" : c.safe_to_fix_now ? "text-emerald-800" : "text-slate-600"}`}>
+              <div className={`rounded-lg p-3 ${
+                blocked ? "bg-red-50" : held ? "bg-amber-50" : c.safe_to_fix_now ? "bg-emerald-50" : "bg-slate-50"}`}>
+                <dt className={`font-medium ${
+                  blocked ? "text-red-800" : held ? "text-amber-800" : c.safe_to_fix_now ? "text-emerald-800" : "text-slate-600"}`}>
                   Recommended action
                 </dt>
-                <dd className={blocked ? "text-red-900" : c.safe_to_fix_now ? "text-emerald-900" : "text-slate-700"}>
+                <dd className={blocked ? "text-red-900" : held ? "text-amber-900" : c.safe_to_fix_now ? "text-emerald-900" : "text-slate-700"}>
                   {c.recommended_action}
                 </dd>
               </div>
             </dl>
             <footer className="mt-4 flex flex-wrap items-center gap-2 pt-1">
               <button className="btn-success" disabled={!c.safe_to_fix_now || !!status}
-                      title={c.safe_to_fix_now ? undefined : "IT must migrate the dependent workflow first"}
+                      title={c.safe_to_fix_now ? undefined
+                        : held ? "IT must first check a workflow that could not be analysed"
+                        : "IT must migrate the dependent workflow first"}
                       onClick={() => onReview(c.id, "Approved Safe Cleanup")}>
                 <Icon name="check" />Approve Safe Cleanup
               </button>

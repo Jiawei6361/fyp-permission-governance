@@ -9,7 +9,7 @@ from __future__ import annotations
 from datetime import datetime
 from pathlib import Path
 
-from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Index, Integer, String, create_engine, event
+from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Index, Integer, String, create_engine, event, inspect, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
@@ -122,7 +122,7 @@ class Assessment(AppBase):
     is_overshared: Mapped[bool] = mapped_column(Boolean, nullable=False)
     is_stale: Mapped[bool] = mapped_column(Boolean, nullable=False)
     days_since_access: Mapped[int | None] = mapped_column(Integer)
-    # BREAKAGE_CRITICAL | SAFE_TO_REVOKE | KEEP_REQUIRED
+    # BREAKAGE_CRITICAL | UNKNOWN_DEPENDENCY | SAFE_TO_REVOKE | KEEP_REQUIRED
     classification: Mapped[str] = mapped_column(String, nullable=False, index=True)
     dependent_flows: Mapped[list] = mapped_column(JSON, nullable=False)
     mitigation: Mapped[str | None] = mapped_column(String)
@@ -139,6 +139,8 @@ class RemediationPlan(AppBase):
     permission_id: Mapped[str] = mapped_column(String, nullable=False, index=True)  # copied from the assessment
     file_id: Mapped[str] = mapped_column(String, nullable=False)
     strategy: Mapped[str] = mapped_column(String, nullable=False)  # service_principal | scoped_identity_grant
+    # Why the creator went ahead although a flow could not be analysed. Required for UNKNOWN_DEPENDENCY.
+    override_reason: Mapped[str | None] = mapped_column(String)
     exposed_before: Mapped[int | None] = mapped_column(Integer)  # exposed user counts: not computed yet
     exposed_after: Mapped[int | None] = mapped_column(Integer)
     created_by: Mapped[str] = mapped_column(String, nullable=False)
@@ -181,5 +183,10 @@ def make_engine(path: Path | str = DB_PATH) -> Engine:
 
 
 def init_db(engine: Engine) -> None:
-    """Create any missing app tables. Never creates or touches tenant tables."""
+    """Create any missing app tables and nullable columns. Never creates or touches tenant tables."""
     AppBase.metadata.create_all(engine, checkfirst=True)
+    # There is no Alembic: a database made before a nullable column existed gets it added here.
+    existing = {c["name"] for c in inspect(engine).get_columns("remediation_plans")}
+    if "override_reason" not in existing:
+        with engine.begin() as conn:
+            conn.execute(text("ALTER TABLE remediation_plans ADD COLUMN override_reason VARCHAR"))

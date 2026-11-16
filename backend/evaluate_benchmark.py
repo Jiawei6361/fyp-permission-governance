@@ -14,7 +14,11 @@ Tasks
      broad grants are negatives.
   3. Flow-dependency detection. Positives are workflow_breaking_permissions (item-level
      permissions that are the sole access path of an active flow). The baseline does no flow
-     analysis.
+     analysis. Only proven dependencies count as detections: a permission held back as
+     UNKNOWN_DEPENDENCY (a flow on its site could not be analysed) is not a detection.
+UNKNOWN_DEPENDENCY permissions are never recommended for revocation, so the ones that are
+really safe count as false negatives of task 1. `unknown_dependency_holds` reports how many
+were held and how many of those would really have broken a flow.
 Workflow breakage is measured by "executing" each engine's recommended revocations against the
 ground-truth dependency map, so it does not reuse the engine's own dependency logic.
 """
@@ -28,7 +32,7 @@ if __package__ in (None, ""):  # run as `py backend/evaluate_benchmark.py`: make
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from backend.adapter import SimulatorAdapter
-from backend.flow_mapper import BREAKAGE_CRITICAL, SAFE_TO_REVOKE, classify
+from backend.flow_mapper import BREAKAGE_CRITICAL, SAFE_TO_REVOKE, UNKNOWN_DEPENDENCY, classify
 from backend.models import TENANT_DB_PATH
 from backend.scanner import load_snapshot, scan_permissions
 from backend.seed import GROUND_TRUTH_PATH, NOW, seed_database
@@ -65,8 +69,9 @@ def evaluate(tenant_db_path: Path | str = TENANT_DB_PATH, truth_path: Path | str
     # Ground truth labels item-level grants only: an inherited site grant cannot be revoked on the
     # item, so the engine's (correct) dependency notes on inherited grants are out of scope here.
     ours_deps = {a.risk.permission.permission_id for a in assessed
-                 if (a.classification == BREAKAGE_CRITICAL or a.dependencies)
+                 if (a.classification == BREAKAGE_CRITICAL or any(d.unresolved_reason is None for d in a.dependencies))
                  and a.risk.permission.inherited_from is None}
+    held = {a.risk.permission.permission_id for a in assessed if a.classification == UNKNOWN_DEPENDENCY}
 
     def broken_flows(revoked: set[str]) -> list[str]:
         return sorted({f for pid, flows in gt_breaking.items() if pid in revoked for f in flows})
@@ -96,6 +101,13 @@ def evaluate(tenant_db_path: Path | str = TENANT_DB_PATH, truth_path: Path | str
         }
     base_broken = len(out["engines"]["baseline"]["flows_broken_if_executed"])
     ours_broken = len(out["engines"]["proposed"]["flows_broken_if_executed"])
+    out["unknown_dependency_holds"] = {
+        "permissions_held": len(held),
+        "would_break_a_flow": len(held & set(gt_breaking)),
+        "safe_but_held": len(held & gt_safe),
+        "flows_unresolved": sorted({d.flow_id for a in assessed if a.classification == UNKNOWN_DEPENDENCY
+                                    for d in a.dependencies if d.unresolved_reason}),
+    }
     out["workflow_breakage_prevention_rate_pct"] = round(100 * (base_broken - ours_broken) / base_broken, 2) if base_broken else 100.0
     return out
 
@@ -123,6 +135,9 @@ def print_report(res: dict) -> None:
         print(f"{e['name']}: {e['recommended_revocations']} revocations recommended, "
               f"{len(broken)} flows broken if executed ({len(e['critical_flows_broken_if_executed'])} business-critical)"
               + (f": {', '.join(broken)}" if broken else ""))
+    u = res["unknown_dependency_holds"]
+    print(f"Held as UNKNOWN_DEPENDENCY: {u['permissions_held']} permissions ({u['would_break_a_flow']} would really "
+          f"break a flow, {u['safe_but_held']} were safe) because of flows {', '.join(u['flows_unresolved'])}")
     print(f"\nWorkflow breakage prevention rate: {res['workflow_breakage_prevention_rate_pct']:.2f}%")
 
 

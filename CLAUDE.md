@@ -4,15 +4,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Current state
 
-The project is an APU final year project: a platform that scans SharePoint permissions, maps Power Automate flow dependencies, scores oversharing risk, explains findings through an LLM, and remediates with rollback. It runs against a simulated tenant (the fictional "Lumira Trading").
+The project is an APU final year project: a platform that scans SharePoint permissions, maps Power Automate flow dependencies, scores oversharing risk, and previews (never executes) remediation. It runs against a simulated tenant (the fictional "Lumira Trading"). The LLM explanation and real remediation/rollback described in the project brief are not built.
 
-`ARCHITECTURE.md` and `ROADMAP.md` are the long-term spec (cite sections as "A 7.3"; Grep for headings rather than reading them whole). The code built so far is a simpler flat layout than those documents describe:
+Flat layout, Python 3.12:
 
-- **Milestone 1:** `backend/models.py` (SQLAlchemy, SQLite at `backend/fyp_governance.db`), `backend/seed.py` (deterministic seed 42, writes `backend/ground_truth.json`), `backend/schemas.py` (Graph v1.0 permission and flow models), `backend/adapter.py`, `backend/verify_milestone1.py`.
-- **Milestone 2:** `backend/scanner.py` (risk scoring, weights in `WEIGHTS`), `backend/flow_mapper.py` (flow dependencies and `BREAKAGE_CRITICAL` / `SAFE_TO_REVOKE` / `KEEP_REQUIRED`), `backend/main.py` (FastAPI), `backend/evaluate_benchmark.py` (writes `backend/benchmark_results.json`), `backend/tests/`.
-- **Milestone 3:** `frontend/` (React 18 + Vite 6 + TypeScript + Tailwind 3, npm): KPI bar and scan trigger, IT Security Admin / Business Manager views, dry-run guardrail modal, "Evaluation & Proof" benchmark tab. Backend additions: CORS for `http://localhost:5173` (`FYP_CORS_ORIGINS` overrides), `GET /api/benchmark` (serves `benchmark_results.json`), `inherited_from` on `AssessmentOut`, `backend/tests/test_milestone3.py`. Manager review decisions are browser-only (localStorage per `scan_id`); nothing writes to the tenant.
+- **Milestone 1:** `backend/models.py` (SQLAlchemy 2, SQLite at `backend/fyp_governance.db`; tables `users`, `files`, `permissions`, `flows`, `assessments`), `backend/seed.py` (deterministic seed 42, writes `backend/ground_truth.json`), `backend/schemas.py` (Graph v1.0 permission and flow models, plus API response models), `backend/adapter.py` (`TenantAdapter`, `SimulatorAdapter`, stub `LiveGraphAdapter`), `backend/verify_milestone1.py`.
+- **Milestone 2:** `backend/scanner.py` (risk scoring, weights in the `WEIGHTS` dict), `backend/flow_mapper.py` (flow dependencies, `BREAKAGE_CRITICAL` / `SAFE_TO_REVOKE` / `KEEP_REQUIRED`), `backend/main.py` (FastAPI), `backend/evaluate_benchmark.py` (writes `backend/benchmark_results.json`), `backend/tests/` (`test_milestone2.py`, `test_milestone3.py`).
+- **Milestone 3:** `frontend/` (React 18 + Vite 6 + TypeScript + Tailwind 3, npm): KPI bar and scan trigger, IT Security Admin / Business Manager views, dry-run modal, "Evaluation & Proof" benchmark tab. Manager review decisions are browser-only (localStorage per `scan_id`); nothing writes to the tenant.
 
-No Makefile, Alembic or simulator HTTP service exists yet.
+No Makefile, Alembic, simulator HTTP service, saga/remediation executor, job queue, LLM layer or YAML config exists.
+
+### Data and API facts
+
+- Seeded dataset: 50 users, 100 files (10 sites x 10), 25 flows, 337 permissions. `ground_truth.json` records 12 overshared files, 15 stale-safe-to-revoke permissions, 12 workflow-breaking permissions and 2 benign broad grants. The tests assert these counts, so changing `build_dataset()` is a breaking change.
+- The scanner reads the tenant tables of the SQLite database through `load_snapshot(session)`. It does not call `adapter.py` yet; only `verify_milestone1.py` and the tests use the adapter.
+- Risk score is 0-100, the sum of the `WEIGHTS` in `scanner.py`, with `OVERSHARE_THRESHOLD = 50` and `STALE_DAYS = 90`. These are Python constants, exposed read-only at `GET /api/config/scoring`.
+- Scans are immutable snapshots: each `POST /api/scan/run` appends `assessments` rows under a new `scan_id`. Reference time is the fixed `seed.NOW`.
+- Routes (all in `main.py`, app built by `create_app()`): `GET /api/config/scoring`, `GET /api/benchmark`, `POST /api/scan/run`, `GET /api/assessments` (`classification`, `role=admin|manager`, `scan_id` query params), `GET /api/assessments/{id}`, `POST /api/assessments/{id}/dry-run`. Dry-run only describes the Graph `DELETE` request and is `blocked` unless the classification is `SAFE_TO_REVOKE`. No auth; `role` is a presentation switch only.
+- CORS allows `http://localhost:5173` and `http://127.0.0.1:5173`; `FYP_CORS_ORIGINS` (comma-separated) overrides.
 
 ## Commands
 
@@ -25,25 +34,17 @@ On this Windows machine always use `py`, never `python`. Run everything from the
 - Milestone 1 checks: `py backend/verify_milestone1.py` (this reseeds `fyp_governance.db`)
 - Frontend (run inside `frontend/`, uses `npm`): `npm install`, `npm run dev` (port 5173, API at `VITE_API_BASE`, default `http://127.0.0.1:8000`), `npm run build` (`tsc --noEmit && vite build`). Deep links: `#benchmark`, `?role=manager`, `?preview=<assessment id>`.
 - Running a scan writes `assessments` rows into whichever database the API uses. To demo without touching the committed `fyp_governance.db`, copy it and set `FYP_DB_PATH`.
+- Backend dependencies are pinned in `backend/requirements.txt`.
 
 ## Import structure
 
 `backend` is a package (`backend/__init__.py`). All internal imports are absolute, for example `from backend.models import File`. Never use flat imports such as `from models import ...`; they break `backend.main:app`. Scripts that are run by file path (`seed.py`, `evaluate_benchmark.py`, `verify_milestone1.py`) insert the project root into `sys.path` when `__package__` is empty, before their `backend.*` imports. Any new runnable script needs the same guard.
 
-## Planned commands (from ROADMAP.md, not yet implemented)
+## Target design
 
-`make setup | seed | sim | api | web | dev | db-reset | sim-reset | test | verify-mN`. Processes: simulator :8001, FastAPI backend :8000, Vite frontend :5173. Stack: Python 3.12, FastAPI, SQLAlchemy 2, Alembic, uv, pytest on the backend; React, TypeScript, Vite, pnpm, Vitest, Playwright on the frontend.
+Decisions for where the project goes next. These are intent, not current behaviour.
 
-## Architecture rules that span many files
-
-- **Backend never touches the tenant directly.** All access goes through the `TenantGateway` port (`backend/app/gateway/port.py`). `SimulatorAdapter` and `LiveGraphAdapter` share `base_http.py` (paging via `@odata.nextLink`, 429/5xx retry, error mapping) and differ only in base URLs and token acquisition, selected by `ADAPTER_MODE`.
-- **The simulator mimics Microsoft Graph v1.0 and the Power Automate admin API on the wire**, with the same paths and JSON. It is stateful: deleting a permission changes later responses, and a flow test run fails when its connection identity loses access. That statefulness is what makes "zero broken workflows" measurable. `/_sim/*` routes exist only for the evaluation harness and tests, never for adapter code that also runs live. `/_sim/health` returns a `state_checksum` that tests use to prove a call changed nothing or a rollback restored everything.
-- **Mock data is deterministic** (`generate.py`, seed 42) and committed under `mock_data/tenant/`. `ground_truth.json` holds 12 planted oversharing scenarios (P01-P12) plus 2 benign grants. Counts such as 50 users, 15 sites, 10 flows, 14 findings, 9 impact rows (5 BREAKS, 3 SAFE, 1 UNKNOWN) and a naive baseline of 6 broken flows are asserted by the tests, so changing the generator is a breaking change.
-- **Scans are immutable snapshots** keyed by `scan_id`. Findings have a stable `fingerprint` so `dismissed` and `accepted_risk` carry over to later scans.
-- **Risk = impact x likelihood**, with all weights, bands and floors in `backend/app/scoring_config.yaml` and exposed via `GET /config/scoring`. Do not hardcode them. `backend/tests/golden/scores.json` is compared exactly once it exists, so a weight change must regenerate it in the same commit.
-- **Remediation is a saga** (A 9). Additive steps run first (grant service principal, rebind flow, preflight verify, add replacement grants), and the single destructive step `REMOVE_BROAD_GRANT` runs only after preflight succeeds. Every step has a compensation, and a failed verification triggers automatic rollback. Steps carry `idempotency_key = plan_id:seq`. Execution is single-flight through an optimistic `version` check. Stale snapshots return 409 `SNAPSHOT_STALE`.
-- **The LLM sees structured metadata only, never file content.** The deterministic `template` provider is the default and must pass every check with no API key. LLM output goes through `validator.py`, and invalid output falls back to the template.
-- **Background work** uses FastAPI background tasks plus a `jobs` table with heartbeats. There is no message broker. On startup, stale scans become `failed` and stale remediations roll back.
-- **Roles:** `admin` runs scans and executes plans. `owner` is scoped by department, can approve or reject, and cannot execute. Owners get 404 on other departments' findings.
-- **The API contract is frozen** from the milestone that introduces each route, enforced by Schemathesis and snapshot tests. Alembic migrations are one per milestone (`0001_m1`..`0006_m6`) and only add tables or columns.
-- **Live writes** stay off unless `LIVE_WRITES_ENABLED=true`. The `service_principal` strategy models a real-tenant limitation: the standard SharePoint connector needs user context (A 1.1). `scoped_identity_grant` is the fallback.
+- Keep the flat `backend/` layout. Do not migrate to `backend/app/`.
+- `ARCHITECTURE.md` and `ROADMAP.md` are reference ideas only, not the plan. Do not treat anything in them as a requirement or cite them as the spec.
+- All tenant reads and writes must go through `backend/adapter.py`. Today `scanner.py` still reads the tenant tables directly, so new code must use the adapter and existing direct reads should be moved behind it.
+- Tenant data and app data live in two separate SQLite files. Today both share `fyp_governance.db` (`users`, `files`, `permissions`, `flows` are tenant data; `assessments` is app data). New app tables go in the app database, not the tenant one.
